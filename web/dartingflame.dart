@@ -1,7 +1,7 @@
 library dartingflame;
 
 import 'dart:async';
-//import 'dart:collection';
+import 'dart:collection';
 import 'dart:html';
 import 'dart:math';
 

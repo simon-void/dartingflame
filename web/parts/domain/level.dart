@@ -155,20 +155,20 @@ class Level
 
 class LevelModel
 {
-  final List<Bomb>  _bombs;
-  final List<Crate> _crates;
+  final Map<int,Bomb>  _bombs;
+  final Map<int,Crate> _crates;
+  final Map<int,Explosion> _explosions;
   final List<Robot> _robots;
-  final List<Explosion> _explosions;
   final int _border;
   final int _unitPixelSize;
   final int _unitWidth;
   final int _unitHeight;
     
   LevelModel(int unitPixelSize, int unitWidth, int unitHeight, int border):
-    _bombs         = new List<Bomb>(),
-    _crates        = new List<Crate>(),
+    _bombs         = new SplayTreeMap<int,Bomb>(),
+    _crates        = new SplayTreeMap<int,Crate>(),
+    _explosions    = new SplayTreeMap<int,Explosion>(),
     _robots        = new List<Robot>(),
-    _explosions    = new List<Explosion>(),
     _border        = border,
     _unitPixelSize = unitPixelSize,
     _unitHeight    = unitHeight,
@@ -176,17 +176,20 @@ class LevelModel
   
   void addBomb(Bomb bomb)
   {
-    _bombs.add(bomb);
+    int tileIndex = _getTileIndex(bomb._tileX, bomb._tileY);
+    _bombs[tileIndex]=bomb;
   }
   
   void addCrate(Crate crate)
   {
-    _crates.add(crate);
+    int tileIndex = _getTileIndex(crate._tileX, crate._tileY);
+    _crates[tileIndex]=crate;
   }
   
   void addExplosion(Explosion explosion)
   {
-    _explosions.add(explosion);
+    int tileIndex = _getTileIndex(explosion._tileX, explosion._tileY);
+    _explosions[tileIndex]=explosion;
   }
   
   void addRobot(Robot robot)
@@ -196,17 +199,20 @@ class LevelModel
   
   void removeBomb(Bomb bomb)
   {
-    _bombs.remove(bomb);
+    int tileIndex = _getTileIndex(bomb._tileX, bomb._tileY);
+    _bombs.remove(tileIndex);
   }
   
   void removeExplosion(Explosion explosion)
   {
-    _explosions.remove(explosion);
+    int tileIndex = _getTileIndex(explosion._tileX, explosion._tileY);
+    _explosions.remove(tileIndex);
   }
   
   void removeCrate(Crate crate)
   {
-    _crates.remove(crate);
+    int tileIndex = _getTileIndex(crate._tileX, crate._tileY);
+    _crates.remove(tileIndex);
   }
   
   void removeRobot(Robot robot)
@@ -240,32 +246,34 @@ class LevelModel
   
   bool containsBomb(int tileX, int tileY)
   {
-    return _bombs.any(
-        (Bomb bomb) {return bomb.isOnTile(tileX, tileY);}
-    );
+    int tileIndex = _getTileIndex(tileX, tileY);
+    return _bombs.containsKey(tileIndex);
   }
   
   bool containsCreate(int tileX, int tileY)
   {
-    return  _crates.any(
-        (Crate crate) {return crate.isOnTile(tileX, tileY);}
-    );
+    int tileIndex = _getTileIndex(tileX, tileY);
+    return _crates.containsKey(tileIndex);
   }
   
   Bomb getBomb(int tileX, int tileY)
   {
-    return _bombs.firstWhere(
-        (Bomb bomb) {return bomb.isOnTile(tileX, tileY);},
-        orElse: ()=>null
-    );
+    int tileIndex = _getTileIndex(tileX, tileY);
+    return _bombs[tileIndex];
   }
     
   Crate getCreate(int tileX, int tileY)
   {
-    return _crates.firstWhere(
-        (Crate crate) {return crate.isOnTile(tileX, tileY);},
-        orElse: ()=>null
-    );
+    int tileIndex = _getTileIndex(tileX, tileY);
+    return _crates[tileIndex];
+  }
+  
+  int _getTileIndex(int tileX, int tileY)
+  {
+    assert( 0<=tileX && tileX<_unitWidth );
+    assert( 0<=tileY && tileY<_unitHeight );
+    
+    return tileX*_unitHeight + tileY;
   }
 }
 
@@ -321,9 +329,9 @@ class LevelUI
     paintBackground(context2D);
     //repaint the game Objects
     List<GameObject> allGameObjects = new List<GameObject>();
-    allGameObjects.addAll(_model._crates);
-    allGameObjects.addAll(_model._explosions);
-    allGameObjects.addAll(_model._bombs);
+    allGameObjects.addAll(_model._crates.values);
+    allGameObjects.addAll(_model._explosions.values);
+    allGameObjects.addAll(_model._bombs.values);
     allGameObjects.addAll(_model._robots);
     allGameObjects.forEach(
       (GameObject foregroundObject) {
