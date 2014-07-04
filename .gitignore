@@ -1,0 +1,22 @@
+#Eclipse-specific
+.project
+#IntelliJ-specific
+*.iml
+*.ipr
+*.iws
+.idea/
+#Mac-specific
+.DS_Store
+
+# Dart
+.buildlog
+build
+
+packages/
+#ignore pubspec.lock for library packages but not for application packages
+#pubspec.lock
+
+*.js_
+*.js.deps
+*.js.map
+*.dart.js
