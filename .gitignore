@@ -13,6 +13,7 @@
 build
 
 packages/
+*.stackdump
 #ignore pubspec.lock for library packages but not for application packages
 #pubspec.lock
 
