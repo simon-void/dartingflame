@@ -2,23 +2,21 @@ part of dartingflame;
 
 class Level
 {
-  final GameCanvas _gameCanvas;
+  final GameLoop _gameLoop;
   final LevelModel _model;
   LevelUI _ui;
   UnitToPixelPosConverter _pixelConv;
   
-  Level(int unitPixelSize, int unitWidth, int unitHeight, int border, this._gameCanvas):
+  Level(int unitPixelSize, int unitWidth, int unitHeight, int border, this._gameLoop):
     _model = new LevelModel(unitPixelSize, unitWidth, unitHeight, border)
   {
-    _ui    = new LevelUI(_model, _gameCanvas);
+    _ui    = new LevelUI(_model, _gameLoop._gameCanvas);
     _pixelConv = (double unitV)=>(unitV*unitPixelSize).round()+border;
-        
-    init();
   }
     
-  void init()
+  void init(Configuration config)
   {
-    bool isAllowed(int x, int y) {
+    bool isCrateAllowed(int x, int y) {
       return x.isEven||y.isEven;
     }
     //remove all present objects
@@ -28,7 +26,7 @@ class Level
     final int middleWidthIndex = _model._unitWidth~/2;
     for(int tileX=1;tileX<_model._unitWidth-1;tileX++) {
       for(int tileY=1;tileY<_model._unitHeight-1;tileY++) {
-        if(tileX!=middleWidthIndex && isAllowed(tileX, tileY)) {
+        if(tileX!=middleWidthIndex && isCrateAllowed(tileX, tileY)) {
           createCrateAt(tileX, tileY);
         }
       }
@@ -42,14 +40,16 @@ class Level
       createCrateAt(_model._unitWidth-1, tileY);
     }
     
+    for(var playerConfig in config.playerConfigs) {
+      createRobotAt(playerConfig);
+    }
   }
   
-  Robot createRobotAt(Corner corner)
+  void createRobotAt(PlayerConfiguration config)
   {
-    Point<int> tile = corner.getTile(_model._unitWidth, _model._unitHeight);
-    Robot robot = new Robot(_pixelConv, this, tile.x, tile.y);
+    Point<int> tile = config.startCorner.getTile(_model._unitWidth, _model._unitHeight);
+    Robot robot = new Robot(_pixelConv, config, this, tile.x, tile.y);
     _model.addRobot(robot);
-    return robot;
   }
   
   Explosion createExplosionAt(int tileX, int tileY, int explosionRadius)
@@ -98,7 +98,18 @@ class Level
   
   void endRound()
   {
-    _gameCanvas.animate = false;
+    Robot survivor = _model.survivingPlayer;
+    String nameOfSurvivingPlayer = null;
+    if(survivor!=null) {
+      nameOfSurvivingPlayer = survivor._config.playerName;
+      //decomision the last Robot so that it removes itself from the controler
+      //turns out we have to wait a little bit so that the survivor doesn't disappear
+      //from the canvas (although that one is told to stop repainint immediatly)
+      Duration timeTillSurvivorDisconnect = new Duration(milliseconds: 50);
+      new Timer(timeTillSurvivorDisconnect, survivor.explode);
+    }
+    
+    _gameLoop.endRound(nameOfSurvivingPlayer);
   }
 
   bool isFree(int tileX, int tileY)
@@ -250,6 +261,16 @@ class LevelModel
   
   bool get onlyOneRobotLeft => _robots.length==1;
   
+  Robot get survivingPlayer {
+    assert( _robots.length<2);
+    //no survivor
+    if(_robots.isEmpty) {
+      return null;
+    }else{
+      return _robots[0];
+    }
+  }
+  
   void removeExplosion(Explosion explosion)
   {
     int tileIndex = _getTileIndex(explosion._tileX, explosion._tileY);
@@ -273,6 +294,7 @@ class LevelModel
     _crates.clear();
     _explosions.clear();
     _robots.clear();
+    _deadlyTiles.clear();
   }
 
   bool isIndestructable(int tileX, int tileY)

@@ -4,15 +4,24 @@ class Robot
 extends GameObject
 implements ControlerListener
 {
+  final PlayerConfiguration _config;
   final Level _level;
   RobotModel _model;
   RobotUI _ui;
   
-  Robot(UnitToPixelPosConverter pixelConv, Level level, int tileX, int tileY):
-    _level = level
+  Robot(UnitToPixelPosConverter pixelConv, this._config, this._level, int tileX, int tileY)
   {
-    _model = new RobotModel(level, this, tileX.toDouble(), tileY.toDouble());
+    _model = new RobotModel(_level, this, tileX.toDouble(), tileY.toDouble(), _config.initialBombs, _config.initialRange);
     _ui = new RobotUI(pixelConv, _model);
+    //connect to a controler
+    _config.controler.controlerListener = this;
+  }
+  
+  void explode()
+  {
+//    _ui.color="#a50";
+    _config.controler.controlerListener = null;
+    _level.remove(this);
   }
   
   UI getUI()=>_ui;
@@ -66,12 +75,6 @@ implements ControlerListener
     _model.updateDirection(Movement.NONE);
   }
   
-  void explode()
-  {
-    _ui.color="#a50";
-    _level.remove(this);
-  }
-  
   /**
    * return a list of one or two tiles the robot current stands on.
    * It's one tile if the robot is resting at the center of one, 
@@ -95,19 +98,17 @@ implements ControlerListener
 
 class RobotModel
 {
-  static const _INITIAL_BOMBS = 3;
-  static const _INITIAL_EXPLOSION_RADIUS = 2;
   static const double _unitsPerSecond = 3.6;
   final Level _level;
   final Robot _robot;
-  int _bombsAvailable = _INITIAL_BOMBS;
-  int _explosionRadius = _INITIAL_EXPLOSION_RADIUS;
+  int _bombsAvailable;
+  int _explosionRadius;
   double _lastTimeInMillies = nowInMillies();
   Movement _currentDirection = Movement.NONE;
   Movement _nextDirection = Movement.NONE;
   Point<double> _lastLoaction;
   
-  RobotModel(this._level, this._robot, double initialX, double initialY):
+  RobotModel(this._level, this._robot, double initialX, double initialY, this._bombsAvailable, this._explosionRadius):
     _lastLoaction = new Point(initialX, initialY);  
   
   Point<double> get currentLocation
@@ -267,8 +268,7 @@ class RobotUI
 extends UI
 {
   final RobotModel _model;
-  //static const 
-  String color = "#000";
+  static const String color = "#000";
   
   RobotUI(UnitToPixelPosConverter pixelConv, this._model):super(pixelConv);    
     

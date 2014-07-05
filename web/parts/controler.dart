@@ -28,9 +28,15 @@ abstract class ControlerListener
 class Controler
 {
   final Map<int, ControlerButton> _mapping;
+  final List<ControlerButton> _pressedDirectionButtons;
   ControlerListener _controlerListener;
   
-  set controlerListener(ControlerListener cl) => _controlerListener = cl;
+  bool get isDeactivated=>_controlerListener==null;
+  
+  set controlerListener(ControlerListener cl) {
+    _controlerListener = cl;
+    _pressedDirectionButtons.clear();
+  }
   
   Controler.wasdSpace(Stream<KeyboardEvent> onKeyUp, Stream<KeyboardEvent> onKeyDown):
     this(87, 83, 65, 68, 32, onKeyUp, onKeyDown);
@@ -46,26 +52,29 @@ class Controler
                 leftKeyCode  : ControlerButton.LEFT,
                 rightKeyCode : ControlerButton.RIGHT,
                 aKeyCode     : ControlerButton.A
-              }
-  {
-    var pressedDirectionButtons = new List<ControlerButton>();
-    
+              },
+              _pressedDirectionButtons = new List<ControlerButton>()
+  {    
     onKeyDown.listen(
         (KeyboardEvent e) {
+          if(isDeactivated) {
+            return;
+          }
+          
           var button = _mapping[e.keyCode];
           if(button!=null) {
-            if(button.isDirectionButton && !pressedDirectionButtons.contains(button)) {
-              switch(pressedDirectionButtons.length) {
+            if(button.isDirectionButton && !_pressedDirectionButtons.contains(button)) {
+              switch(_pressedDirectionButtons.length) {
               case 0:
                 //direction-button presses only get transmitted if only one direction is pressed
                 onButtonDown(button);
                 break;
               case 1:
                 //deactivate the the former pressed button
-                onButtonUp(pressedDirectionButtons.first);
+                onButtonUp(_pressedDirectionButtons.first);
                 break;
               }
-              pressedDirectionButtons.add(button);
+              _pressedDirectionButtons.add(button);
             }else{
               //non-direction Button always get transmitted
               onButtonDown(button);
@@ -76,18 +85,22 @@ class Controler
     
     onKeyUp.listen(
         (KeyboardEvent e) {
+          if(isDeactivated) {
+            return;
+          }
+          
           var button = _mapping[e.keyCode];
           if(button!=null) {
             if(button.isDirectionButton) {
-              pressedDirectionButtons.remove(button);
-              switch(pressedDirectionButtons.length) {
+              _pressedDirectionButtons.remove(button);
+              switch(_pressedDirectionButtons.length) {
                 case 0:
                   //deactivate this active direction button
                   onButtonUp(button);
                   break;
                 case 1:
                   //activate the last pressed direction button
-                  onButtonDown(pressedDirectionButtons.first);
+                  onButtonDown(_pressedDirectionButtons.first);
                   break;
               }
             }
