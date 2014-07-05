@@ -5,23 +5,17 @@ extends GameObject
 implements ControlerListener
 {
   final Level _level;
-  final RobotModel _model;
+  RobotModel _model;
   RobotUI _ui;
   
   Robot(UnitToPixelPosConverter pixelConv, Level level, int tileX, int tileY):
-    _level = level,
-    _model = new RobotModel(level, tileX.toDouble(), tileY.toDouble())
+    _level = level
   {
+    _model = new RobotModel(level, this, tileX.toDouble(), tileY.toDouble());
     _ui = new RobotUI(pixelConv, _model);
   }
   
   UI getUI()=>_ui;
-  
-  @override
-  void updatePosition() 
-  {
-//    _pos  = _model.currentLocation;
-  }
   
   int get explosionRadius=>_model._explosionRadius;
   
@@ -71,6 +65,32 @@ implements ControlerListener
   {
     _model.updateDirection(Movement.NONE);
   }
+  
+  void explode()
+  {
+    _ui.color="#a50";
+    _level.remove(this);
+  }
+  
+  /**
+   * return a list of one or two tiles the robot current stands on.
+   * It's one tile if the robot is resting at the center of one, 
+   * two if it's in transit from one to the next.
+   */
+  List<Point<int>> getOccupiedTiles()
+  {
+    Point<double> pos = _model.currentLocation;
+    int tileX1 = pos.x.floor();
+    int tileY1 = pos.y.floor();
+    int tileX2 = pos.x.ceil();
+    int tileY2 = pos.y.ceil();
+    
+    if(tileX1==tileX2 && tileY1==tileY2) {
+      return [new Point<int>(tileX1, tileY1)];
+    }else{
+      return [new Point<int>(tileX1, tileY1), new Point<int>(tileX2, tileY2)];
+    }
+  }
 }
 
 class RobotModel
@@ -79,6 +99,7 @@ class RobotModel
   static const _INITIAL_EXPLOSION_RADIUS = 2;
   static const double _unitsPerSecond = 3.6;
   final Level _level;
+  final Robot _robot;
   int _bombsAvailable = _INITIAL_BOMBS;
   int _explosionRadius = _INITIAL_EXPLOSION_RADIUS;
   double _lastTimeInMillies = nowInMillies();
@@ -86,7 +107,7 @@ class RobotModel
   Movement _nextDirection = Movement.NONE;
   Point<double> _lastLoaction;
   
-  RobotModel(this._level, double initialX, double initialY):
+  RobotModel(this._level, this._robot, double initialX, double initialY):
     _lastLoaction = new Point(initialX, initialY);  
   
   Point<double> get currentLocation
@@ -166,34 +187,34 @@ class RobotModel
       return new Point<double>(newX, newY);
     }
     
-    Point<double> getEndTile(Point<double> fromPos, double distanceToTile, Movement direction) {
+    Point<double> getEndTilePos(Point<double> fromPos, double distanceToTile, Movement direction) {
       Point<double> toPos = getEndPoint(fromPos, distanceToTile, direction);
       //toPos.x/y should be perfect int values but numerics could fail so round manually
       return new Point<double>(toPos.x.roundToDouble(), toPos.y.roundToDouble());
     }
     
-    Point<double> moveIfPossibleFromTile(Point<double> tile, double distance, Movement direction)
+    Point<double> moveIfPossibleFromTile(Point<double> fromTile, double distance, Movement direction)
     {
-      bool canMove(Point<double> fromTile, Movement direction) {
-        Point<double> toTile = getEndTile(fromTile, 1.0, direction);
+      Point<int> getEndTile(Point<double> fromTile, Movement direction) {
+        Point<double> toTilePos = getEndTilePos(fromTile, 1.0, direction);
         //x and y can perfectly be converted to ints
-        int toTileX = toTile.x.toInt();
-        int toTileY = toTile.y.toInt();
-        //and check whether is level is free of a blocks/bombs there
-        return _level.isFree(toTileX, toTileY);
+        return Tile.posToTile(toTilePos);
       }
       
       //improbable but not impossible
       if(distance==.0) {
-        return tile;
+        return fromTile;
       }
       
-      if(canMove(tile, direction)) {
-        return getEndPoint(tile, distance, direction);
+      Point<int> toTile = getEndTile(fromTile, direction);
+      if( _level.isFree(toTile.x, toTile.y)) {
+        //inform the level that the robot is entering a tile
+        _level.robotEntersTile(_robot, toTile.x, toTile.y);
+        return getEndPoint(fromTile, distance, direction);
       }else{
         _currentDirection = Movement.NONE;
         _nextDirection    = Movement.NONE;
-        return tile; 
+        return fromTile; 
       }
     }
     
@@ -220,7 +241,7 @@ class RobotModel
         return getEndPoint(transientPoint, distance, direction);
       }else{
         //go to tile than give over to moveIfPossibleFromTile(..) with restDistance
-        Point<double> toTile = getEndTile(transientPoint, distanceToNewTile, direction);
+        Point<double> toTile = getEndTilePos(transientPoint, distanceToNewTile, direction);
         //walk in new Direction the remaining distance
         _currentDirection = _nextDirection;
         double newDistance = distance-distanceToNewTile;
@@ -246,7 +267,8 @@ class RobotUI
 extends UI
 {
   final RobotModel _model;
-  static const String color = "#000";
+  //static const 
+  String color = "#000";
   
   RobotUI(UnitToPixelPosConverter pixelConv, this._model):super(pixelConv);    
     

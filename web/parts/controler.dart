@@ -35,14 +35,17 @@ class Controler
   Controler.wasdSpace(Stream<KeyboardEvent> onKeyUp, Stream<KeyboardEvent> onKeyDown):
     this(87, 83, 65, 68, 32, onKeyUp, onKeyDown);
   
+  Controler.arrowsEnter(Stream<KeyboardEvent> onKeyUp, Stream<KeyboardEvent> onKeyDown):
+      this(38, 40, 37, 39, 13, onKeyUp, onKeyDown);
+  
   Controler(int upKeyCode, int downKeyCode, int leftKeyCode, int rightKeyCode, int aKeyCode,
             Stream<KeyboardEvent> onKeyUp, Stream<KeyboardEvent> onKeyDown):
               _mapping = {
-                upKeyCode : ControlerButton.UP,
-                downKeyCode : ControlerButton.DOWN,
-                leftKeyCode : ControlerButton.LEFT,
+                upKeyCode    : ControlerButton.UP,
+                downKeyCode  : ControlerButton.DOWN,
+                leftKeyCode  : ControlerButton.LEFT,
                 rightKeyCode : ControlerButton.RIGHT,
-                aKeyCode : ControlerButton.A
+                aKeyCode     : ControlerButton.A
               }
   {
     var pressedDirectionButtons = new List<ControlerButton>();
@@ -107,78 +110,3 @@ class Controler
     }  
   }
 }
-
-//class PlayerMovementStatus
-//{
-//  static const double _unitsPerSecond = 4.5;
-//  double _lastTimeInMillies = nowInMillies();
-//  Movement _lastDirection = Movement.NONE;
-//  Point<double> _lastLoaction;
-//  final Environment _environment;
-//  final Robot _robot;
-//  
-//  PlayerMovementStatus(double initialX, double initialY, this._environment, this._robot):
-//    _lastLoaction = new Point(initialX, initialY);  
-//  
-//  Point<double> get currentLocation
-//  {
-//    double deltaMillies = nowInMillies()-_lastTimeInMillies;
-//    double deltaDistance = (_unitsPerSecond * deltaMillies) / 1000;
-//    return _moveIfPossible(_lastLoaction, deltaDistance, _lastDirection);
-//  }
-//  
-//  void updateDirection(Movement direction) {
-//    _lastLoaction = currentLocation;
-//    _lastTimeInMillies = nowInMillies();
-//    _lastDirection = direction;
-//  }
-//  
-//  Point<double> _moveIfPossible(Point<double> from, double distance, Movement direction)
-//  {
-//    /**
-//     * returns true if there exist an integer between oldV and newV (and it's neither oldV nor newV)
-//     */
-//    bool crossesInteger(double oldV, double newV) {
-//      return oldV.floor()!=newV.floor() && oldV.ceil()!=newV.ceil();
-//    }
-//    
-//    if(direction==Movement.UP) {
-//      double newY = from.y - distance;
-//      if(crossesInteger(from.y, newY)) {
-//        if(!_environment.enterTileIfPossible(from.x.round(), newY.floor(), _robot)) {
-//          newY = from.y.floorToDouble();
-//        }
-//      }
-//      return new Point<double>(from.x, newY);
-//    }
-//    if(direction==Movement.DOWN) {
-//      double newY = from.y + distance;
-//      if(crossesInteger(from.y, newY)) {
-//        if(!_environment.enterTileIfPossible(from.x.round(), newY.ceil(), _robot)) {
-//          newY = from.y.ceilToDouble();
-//        }
-//      }
-//      return new Point<double>(from.x, newY);
-//    }
-//    if(direction==Movement.LEFT) {
-//      double newX = from.x - distance;
-//      if(crossesInteger(from.x, newX)) {
-//        if(!_environment.enterTileIfPossible(newX.floor(), from.y.round(), _robot)) {
-//          newX = from.x.floorToDouble();
-//        }
-//      }
-//      return new Point<double>(newX, from.y);
-//    }
-//    if(direction==Movement.RIGHT) {
-//      double newX = from.x + distance;
-//      if(crossesInteger(from.x, newX)) {
-//        if(!_environment.enterTileIfPossible(newX.ceil(), from.y.round(), _robot)) {
-//          newX = from.x.ceilToDouble();
-//        }
-//      }
-//      return new Point<double>(newX, from.y);
-//    }
-//    //no movement
-//    return from;
-//  }
-//}

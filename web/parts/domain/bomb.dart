@@ -2,7 +2,7 @@ part of dartingflame;
 
 class Bomb
 extends UnmovableObject
-with Timer
+with Timed
 {
   static const int MILLIES_TO_LIVE = 2000;
   static const int MILLIES_TO_LIVE_AFTER_TRIGGER = 100;
@@ -60,7 +60,7 @@ with Timer
 
 typedef void Callback();
 
-class Timer
+class Timed
 {
   int _initialMilliesToLive;
   int _realMilliesToLive;
@@ -104,30 +104,46 @@ class Timer
 
 class Explosion
 extends UnmovableObject
-with Timer
+with Timed
 {
   static const int MILLIES_TO_LIVE = 500;
   final Level _level;
   final List<Blast> blasts;
+  final List<Point<int>> blastedTiles;
   
   Explosion(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, int explosionRadius):
     super(pixelConv, tileX, tileY),
-    blasts = new List<Blast>()
+    blasts = new List<Blast>(),
+    blastedTiles = [new Point<int>(tileX, tileY)]
   {
-    startTimer(MILLIES_TO_LIVE, _fadeOut);
+    void collectBlastedTiles(List<Point<int>> blastedTileCollection, Blast blast)
+    {
+      Point<int> blastTile = new Point<int>(tileX, tileY);
+      for(int i=0; i<blast._blastRange.range; i++) {
+        blastTile = Tile.nextTile(blastTile.x, blastTile.y, blast._direction);
+        blastedTileCollection.add(blastTile);
+      }
+    }
     
     Direction.values().forEach(
       (Direction direction) {
         BlastRange blastRange = _level.getBlastRange(tileX, tileY, direction, explosionRadius);
         if(blastRange.isNotEmpty) {
-          blasts.add(new Blast(blastRange, direction, _level));
+          Blast blast = new Blast(blastRange, direction, _level);
+          blasts.add(blast);
+          collectBlastedTiles(blastedTiles, blast);
         }
       }
     );
+    
+    _level.addDeadlyTiles(blastedTiles);
+    
+    startTimer(MILLIES_TO_LIVE, _fadeOut);
   }
   
   void _fadeOut()
   {
+    _level.removeDeadlyTiles(blastedTiles);
     _level.remove(this);
     
     blasts.forEach(
@@ -210,16 +226,4 @@ class BlastRange
   bool get isNotEmpty=>range>0;
   
   BlastRange(this.terminator, this.range);
-}
-
-class Direction
-{
-  static final Direction UP = new Direction._();
-  static final Direction DOWN = new Direction._();
-  static final Direction LEFT = new Direction._();
-  static final Direction RIGHT = new Direction._();
-  
-  static List<Direction> values()=>[UP, RIGHT, DOWN, LEFT];
-  
-  Direction._();
 }
