@@ -33,27 +33,6 @@ void main()
 //      div.text = "keyCode: ${event.keyCode}";
 //      document.body.children.add(div);
 //    }
-//  );
-  
-//  void showMessage(String msg, String buttonTxt)
-//  {
-//
-//    DivElement dialogDiv = new DivElement();
-//    DivElement textDiv = new DivElement();
-//    textDiv.text = msg;
-//    ButtonElement button = new ButtonElement();
-//    button..text = buttonTxt
-//          ..onClick.first.then(
-//      (MouseEvent){
-//        document.body.children.remove(dialogDiv);
-//      }
-//    );
-//    
-//    dialogDiv.children.add(textDiv);
-//    dialogDiv.children.add(button);
-//    document.body.children.add(dialogDiv);
-//  }
-//  showMessage("one player wins", "restart");
-  
+//  );  
 }
 

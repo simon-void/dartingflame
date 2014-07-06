@@ -19,3 +19,11 @@ h1, p {
   border-bottom-width: 1px;
   border-color: #000;
 }
+
+.msgPopup {
+  position: absolute;
+  text-align: center;
+  background: #fff;
+  border: 1px solid black;
+  padding: 3px;
+}

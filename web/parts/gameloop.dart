@@ -16,7 +16,10 @@ class GameLoop
     _controlers.add(new Controler.arrowsEnter(window.onKeyUp, window.onKeyDown));
     _config = getTwoPlayerConfig();
     
-    startRound();
+    //start the game as soon as the player clicks on 'start'
+    _level.init(_config, connectRobotsWithControler: false);
+    _gameCanvas.paint();
+    _gameCanvas.showMessage("let's play!", "start", startRound);
   }
   
   void startRound()
@@ -34,9 +37,10 @@ class GameLoop
     _gameCanvas.animate = false;
     
     //start a new round after a short while
+    String roundResultMsg = winningPlayerName!=null ? "$winningPlayerName wins" : "draw"; 
     new Timer(
-      new Duration(seconds: 3),
-      ()=>startRound()
+      new Duration(microseconds: 800),
+      ()=>_gameCanvas.showMessage(roundResultMsg, "restart", startRound)
     );
   }
   

@@ -65,10 +65,10 @@ class GameCanvas
     //set the new size on everything
     _width = width;
     _height = height;
-    _canvas.width = width;
-    _canvas.height = height;
-    _parent.style.width="${width}px";
-    _parent.style.height="${height}px";
+    _canvas..width  = width
+           ..height = height;
+    _parent.style..width="${width}px"
+                 ..height="${height}px";    
 
     //and the paint-function
     _proxyPaint = proxyPaint;
@@ -86,7 +86,39 @@ class GameCanvas
     _parent.children.add(_canvas);
   }
   
-  
+  void showMessage(String msg, String buttonTxt, VoidCallback callback)
+  {
+
+    DivElement dialogDiv = new DivElement()
+                  ..classes.add("msgPopup")
+                  ..style.visibility = "hidden"; //hide first so perfect centered positioning can be computed
+    
+    DivElement textDiv = new DivElement();
+    textDiv.text = msg;
+    ButtonElement button = new ButtonElement();
+    button..text = buttonTxt
+          ..onClick.first.then(
+               (MouseEvent e){
+                 _parent.children.remove(dialogDiv);
+                 callback();
+               }
+    );
+    
+    dialogDiv.children.add(textDiv);
+    dialogDiv.children.add(button);
+    
+    
+    _parent.children.add(dialogDiv);
+    
+    //after the dialogDiv was added to the DOM i can get it's dimensions
+    CssRect dialogDimension = dialogDiv.borderEdge;
+    Point<int> leftUpperCorner = new Point<int>((_width-dialogDimension.width)~/2,(_height-dialogDimension.height)~/2);
+    dialogDiv.style..left = "${leftUpperCorner.x}px"
+                   ..top  = "${leftUpperCorner.y}px"
+                   ..visibility = "visible";
+    
+    button.focus();
+  }
   
   bool paint()
   {

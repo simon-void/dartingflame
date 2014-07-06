@@ -14,7 +14,7 @@ class Level
     _pixelConv = (double unitV)=>(unitV*unitPixelSize).round()+border;
   }
     
-  void init(Configuration config)
+  void init(Configuration config,{bool connectRobotsWithControler:true})
   {
     bool isCrateAllowed(int x, int y) {
       return x.isEven||y.isEven;
@@ -63,14 +63,14 @@ class Level
     
     // add robots/players
     for(var playerConfig in config.playerConfigs) {
-      createRobotAt(playerConfig);
+      createRobotAt(playerConfig, connectRobotsWithControler);
     }
   }
   
-  void createRobotAt(PlayerConfiguration config)
+  void createRobotAt(PlayerConfiguration config, bool connectRobotWithControler)
   {
     Point<int> tile = config.startCorner.getTile(_model._unitWidth, _model._unitHeight);
-    Robot robot = new Robot(_pixelConv, config, this, tile.x, tile.y);
+    Robot robot = new Robot(_pixelConv, config, this, tile.x, tile.y, connectRobotWithControler);
     _model.addRobot(robot);
   }
   
