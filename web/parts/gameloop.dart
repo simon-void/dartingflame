@@ -35,7 +35,7 @@ class GameLoop
     
     //start a new round after a short while
     new Timer(
-      new Duration(seconds: 5),
+      new Duration(seconds: 3),
       ()=>startRound()
     );
   }
@@ -45,6 +45,8 @@ class GameLoop
     Configuration config = new Configuration();
     config.playerConfigs.add(new PlayerConfiguration("player1", Corner.UPPER_LEFT,  _controlers[0]));
     config.playerConfigs.add(new PlayerConfiguration("player2", Corner.LOWER_RIGHT, _controlers[1]));
+    config.numberOfBombUpgrades = 6;
+    config.numberOfBombUpgrades = 4;
     
     return config;
   }
@@ -52,6 +54,8 @@ class GameLoop
 
 class Configuration
 {
+  int numberOfRangeUpgrades = 0;
+  int numberOfBombUpgrades  = 0;
   List<PlayerConfiguration> playerConfigs = new List<PlayerConfiguration>();
 }
 

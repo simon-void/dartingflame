@@ -39,14 +39,25 @@ abstract class UnmovableObject extends UI implements GameObject
 
 class Crate
 extends UnmovableObject
-{  
-  Crate(UnitToPixelPosConverter pixelConv, int tileX, int tileY):
+{
+  final Level _level;
+  PowerUp powerUp;
+  
+  Crate(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY):
     super(pixelConv, tileX, tileY);
+  
+  void explode()
+  {
+    _level.remove(this);
+    if(powerUp!=null) {
+      _level.addPowerUp(powerUp);
+    }
+  }
   
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
-    const String color = "#666";
+    const String color = "#5d5d5d";
     context2D..fillStyle = color
              ..fillRect(_offsetX, _offsetY, unitPixelSize, unitPixelSize);
   }

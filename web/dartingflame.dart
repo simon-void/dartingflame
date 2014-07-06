@@ -13,6 +13,7 @@ part 'parts/domain/basics.dart';
 part 'parts/domain/bomb.dart';
 part 'parts/domain/level.dart';
 part 'parts/domain/robot.dart';
+part 'parts/domain/powerups.dart';
 
 
 void main()

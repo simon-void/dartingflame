@@ -34,7 +34,7 @@ with Timed
   {
     const String outerRingColor = "#000";
     const String outerColor     = "#a00";
-    const String innerColor      = "#fff";
+    const String innerColor      = "#d3862b";
     
     int radius = unitPixelSize~/2;
     double radiusPercentage = _liveSpanPercentage();
@@ -192,7 +192,7 @@ class Blast
     if(_blastRange.hasTerminator) {
       var terminator = _blastRange.terminator;
       if(terminator is Crate) {
-        _level.remove(terminator);
+        terminator.explode();
       }
     }
   }
