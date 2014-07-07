@@ -50,7 +50,7 @@ class Level
         break;
       }
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
-      crate.powerUp = new BombUpgrade(_pixelConv, this, crate._tileX, crate._tileY);
+      crate._powerUp = new BombUpgrade(_pixelConv, this, crate._tileX, crate._tileY);
     }
     //then rangeUpgrades
     for(int i=0;i<config.numberOfBombUpgrades;i++) {
@@ -58,7 +58,7 @@ class Level
         break;
       }
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
-      crate.powerUp = new RangeUpgrade(_pixelConv, this, crate._tileX, crate._tileY);
+      crate._powerUp = new RangeUpgrade(_pixelConv, this, crate._tileX, crate._tileY);
     }
     
     // add robots/players
@@ -74,9 +74,9 @@ class Level
     _model.addRobot(robot);
   }
   
-  Explosion createExplosionAt(int tileX, int tileY, int explosionRadius)
+  Explosion createExplosionAt(int tileX, int tileY, int explosionRadius, List<Blast> trigger)
   {
-    Explosion explosion = new Explosion(_pixelConv, this, tileX, tileY, explosionRadius);
+    Explosion explosion = new Explosion(_pixelConv, this, tileX, tileY, explosionRadius, trigger);
     _model.addExplosion(explosion);
     return explosion;
   }
@@ -445,6 +445,8 @@ class LevelModel
 
 class LevelUI
 {
+  static const String blockColor = "#000";
+  static const String floorColor = "#909c90";
   final LevelModel _model;
   final int _totalWidth;
   final int _totalHeight;
@@ -461,22 +463,50 @@ class LevelUI
   {
     paintBackground(context2D);
     paintObjects(context2D);
+    paintIndestructable(context2D);
   }
   
   void paintBackground(CanvasRenderingContext2D context2D)
-  {       
-    const String blockColor = "#000";
-    const String floorColor = "#909c90";
-    
-    context2D..fillStyle= blockColor
-             ..fillRect(0, 0, _totalWidth, _totalHeight);
-    
-    final int borderTimesTwo = 2*_model._border;          
+  {
     context2D..fillStyle= floorColor
-             ..fillRect(_model._border, _model._border, _totalWidth-borderTimesTwo, _totalHeight-borderTimesTwo);
+             ..fillRect(0, 0, _totalWidth, _totalHeight);
+  }
+  
+  void paintObjects(CanvasRenderingContext2D context2D)
+  {
+    UI getUI(GameObject go)=>go.getUI();
+    
+    int getOffset(double unitValue)=>_model._border + ((unitValue-1)*_model._unitPixelSize).round();
+    //clear the old position
+    paintBackground(context2D);
+    //repaint the game Objects
+    List<Repaintable> allGameObjects = new List<Repaintable>();
+    allGameObjects.addAll(_model._powerUps.values);
+    allGameObjects.addAll(_model._crates.values);
+    allGameObjects.add( new Firework(_model._explosions.values));
+    allGameObjects.addAll(_model._bombs.values);
+    allGameObjects.addAll(_model._robots.map(getUI));
+    allGameObjects.forEach(
+      (Repaintable foregroundObject) {
+        //foregroundObject.updatePosition();
+        foregroundObject.repaint(context2D, _model._unitPixelSize);
+      }
+    );
+  }
+  
+  void paintIndestructable(CanvasRenderingContext2D context2D)
+  {
+    //paint border
+    int border = _model._border;
+    context2D..fillStyle= blockColor
+             ..fillRect(0, 0, border, _totalHeight)
+             ..fillRect(0, 0, _totalWidth, border)
+             ..fillRect(_totalWidth, _totalHeight, -border, -_totalHeight)
+             ..fillRect(_totalWidth, _totalHeight, -_totalWidth, -border);
+    
     
     //paint all the undestructable boxes
-    int getOffset(int unitValue)=>_model._border + ((unitValue-1)*_model._unitPixelSize);
+    int getOffset(int unitValue)=>border + ((unitValue-1)*_model._unitPixelSize);
     for(int unitX=2;unitX<=_model._unitWidth;unitX+=2) {
       for(int unitY=2;unitY<=_model._unitHeight;unitY+=2) {
         int offsetX = getOffset(unitX);
@@ -486,25 +516,5 @@ class LevelUI
                  ..fillRect(offsetX, offsetY, _model._unitPixelSize, _model._unitPixelSize);
       }
     }
-  }
-  
-  void paintObjects(CanvasRenderingContext2D context2D)
-  {
-    int getOffset(double unitValue)=>_model._border + ((unitValue-1)*_model._unitPixelSize).round();
-    //clear the old position
-    paintBackground(context2D);
-    //repaint the game Objects
-    List<GameObject> allGameObjects = new List<GameObject>();
-    allGameObjects.addAll(_model._powerUps.values);
-    allGameObjects.addAll(_model._crates.values);
-    allGameObjects.addAll(_model._explosions.values);
-    allGameObjects.addAll(_model._bombs.values);
-    allGameObjects.addAll(_model._robots);
-    allGameObjects.forEach(
-      (GameObject foregroundObject) {
-        //foregroundObject.updatePosition();
-        foregroundObject.getUI().repaint(context2D, _model._unitPixelSize);
-      }
-    );
   }
 }

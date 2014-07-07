@@ -11,6 +11,9 @@ class GameLoop
     _gameCanvas = new GameCanvas(appDiv),
     _controlers = new List<Controler>()
   {
+    //guaranteing this helps in painting
+    assert(unitPixelSize.isEven);
+    
     _level = new Level(unitPixelSize, unitWidth, unitHeight, border, this);    
     _controlers.add(new Controler.wasdSpace(window.onKeyUp, window.onKeyDown));
     _controlers.add(new Controler.arrowsEnter(window.onKeyUp, window.onKeyDown));

@@ -2,13 +2,16 @@ part of dartingflame;
 
 typedef int UnitToPixelPosConverter(double widthOrHeight);
 
-abstract class UI
+abstract class Repaintable
+{
+  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize);
+}
+
+abstract class UI implements Repaintable
 {
   final UnitToPixelPosConverter _pixelConv;
   
   UI(this._pixelConv);
-  
-  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize);
 }
 
 abstract class GameObject
@@ -41,16 +44,25 @@ class Crate
 extends UnmovableObject
 {
   final Level _level;
-  PowerUp powerUp;
+  PowerUp _powerUp;
+  int _blastCounter = 0;
   
   Crate(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY):
     super(pixelConv, tileX, tileY);
+
+  void hitByInitialBlast(Blast blast)
+  {
+    //if this crate is hit bei two bombs than delete its powerup
+    if(_blastCounter++==2) {
+      _powerUp=null;
+    }
+  }
   
   void explode()
   {
     _level.remove(this);
-    if(powerUp!=null) {
-      _level.addPowerUp(powerUp);
+    if(_powerUp!=null) {
+      _level.addPowerUp(_powerUp);
     }
   }
   
@@ -73,6 +85,15 @@ class Direction
   static List<Direction> values()=>[UP, RIGHT, DOWN, LEFT];
   
   Direction._();
+  
+  bool isOposite(Direction other)
+  {
+    if(this==Direction.UP)    return other==Direction.DOWN;
+    if(this==Direction.DOWN)  return other==Direction.UP;
+    if(this==Direction.LEFT)  return other==Direction.RIGHT;
+    if(this==Direction.RIGHT) return other==Direction.LEFT;
+    throw new StateError("unknown direction");
+  }
 }
 
 class Tile

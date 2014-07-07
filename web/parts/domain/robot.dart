@@ -35,7 +35,7 @@ implements ControlerListener
     _model._explosionRadius+=1;
   }
   
-  void addAvalableBomb()
+  void addAvailableBomb()
   {
     _model._bombsAvailable++;
   }
@@ -100,7 +100,7 @@ implements ControlerListener
 
 class RobotModel
 {
-  static const double _unitsPerSecond = 4.3;
+  static const double _unitsPerSecond = 4.34;
   final Level _level;
   final Robot _robot;
   int _bombsAvailable;

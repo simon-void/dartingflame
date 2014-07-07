@@ -32,7 +32,6 @@ extends PowerUp
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
-    const String color = "#d3862b";
     const String outerRingColor = "#000";
     
     int radius = unitPixelSize~/2;
@@ -40,7 +39,7 @@ extends PowerUp
     int arcMiddleX = _offsetX+radius;
     int arcMiddleY = _offsetY+radius;
     
-    context2D..fillStyle = color
+    context2D..fillStyle = Explosion.INNER_BLAST_COLOR
              ..beginPath()
              ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
              ..fill();
@@ -60,7 +59,7 @@ extends PowerUp
   @override
   void upgradeRobot(Robot robot)
   {
-    robot.addAvalableBomb();
+    robot.addAvailableBomb();
   }
   
   @override

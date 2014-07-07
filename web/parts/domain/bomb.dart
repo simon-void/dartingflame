@@ -8,23 +8,29 @@ with Timed
   static const int MILLIES_TO_LIVE_AFTER_TRIGGER = 100;
   final Level _level;
   final Robot _parent;
+  final List<Blast> _trigger; 
   
   Bomb(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, this._parent):
-    super(pixelConv, tileX, tileY)
+    super(pixelConv, tileX, tileY),
+    _trigger = new List<Blast>()
   {
     startTimer(MILLIES_TO_LIVE, _goBooom);
   }
   
   void triggeredByExplosion(Blast blast)
   {
-    shortenRestOfLive(MILLIES_TO_LIVE_AFTER_TRIGGER);
+    //only the first blast that hits this bomb can shorten its remaining time
+    if(_trigger.isEmpty) {
+      shortenRestOfLive(MILLIES_TO_LIVE_AFTER_TRIGGER);
+    }
+    _trigger.add(blast);
   }
   
   void _goBooom()
   {
     //boom
-    _parent.addAvalableBomb();
-    _level.createExplosionAt(_tileX, _tileY, _parent.explosionRadius);
+    _parent.addAvailableBomb();
+    _level.createExplosionAt(_tileX, _tileY, _parent.explosionRadius, _trigger);
     _level.remove(this);
   }
     
@@ -58,17 +64,15 @@ with Timed
   }
 }
 
-typedef void Callback();
-
 class Timed
 {
   int _initialMilliesToLive;
   int _realMilliesToLive;
   double _creationTimeMillies;
   bool _isAlive = true;
-  Callback _onTimeout;
+  VoidCallback _onTimeout;
   
-  void startTimer(int milliesToLive, Callback onTimeout)
+  void startTimer(int milliesToLive, VoidCallback onTimeout)
   {
     this._creationTimeMillies   = nowInMillies();
     this._initialMilliesToLive  = milliesToLive;
@@ -107,11 +111,14 @@ extends UnmovableObject
 with Timed
 {
   static const int MILLIES_TO_LIVE = 500;
+  static const String OUTER_BLAST_COLOR = "#a00";
+  static const String INNER_BLAST_COLOR = "#d3862b";
   final Level _level;
   final List<Blast> blasts;
   final List<Point<int>> blastedTiles;
+  double liveSpanPercentage = .0;
   
-  Explosion(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, int explosionRadius):
+  Explosion(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, int explosionRadius, List<Blast> trigger):
     super(pixelConv, tileX, tileY),
     blasts = new List<Blast>(),
     blastedTiles = [new Point<int>(tileX, tileY)]
@@ -124,14 +131,23 @@ with Timed
         blastedTileCollection.add(blastTile);
       }
     }
+    bool bombWasBlastedFrom(Direction direction)
+    {
+      return trigger.map((Blast blast)=>blast._direction).any(
+          (Direction blastDirection)=>direction.isOposite(blastDirection)
+      );
+    }
     
+    //add a blast for each direction the original bomb wasn't blasted from
     Direction.values().forEach(
       (Direction direction) {
-        BlastRange blastRange = _level.getBlastRange(tileX, tileY, direction, explosionRadius);
-        if(blastRange.isNotEmpty) {
-          Blast blast = new Blast(blastRange, direction, _level);
-          blasts.add(blast);
-          collectBlastedTiles(blastedTiles, blast);
+        if(!bombWasBlastedFrom(direction)) {
+          BlastRange blastRange = _level.getBlastRange(tileX, tileY, direction, explosionRadius);
+          if(blastRange.isNotEmpty) {
+            Blast blast = new Blast(blastRange, direction, _level);
+            blasts.add(blast);
+            collectBlastedTiles(blastedTiles, blast);
+          }
         }
       }
     );
@@ -153,19 +169,48 @@ with Timed
     );
   }
   
+  void updateLivespanPercentage()
+  {
+    liveSpanPercentage = _liveSpanPercentage();
+  }
+  
+  void repaintBackground(CanvasRenderingContext2D context2D, int unitPixelSize)
+  {
+    int radius = (unitPixelSize*sqrt(.5)).floor()+1;
+    int unitPixelSizeHalf = unitPixelSize~/2;
+    
+    int arcMiddleX = _offsetX+unitPixelSizeHalf;
+    int arcMiddleY = _offsetY+unitPixelSizeHalf;
+        
+    context2D..fillStyle = OUTER_BLAST_COLOR
+             ..beginPath()
+             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
+             ..fill();
+        
+    blasts.forEach(
+      (Blast blast) {
+        blast.repaintOuterBlast(context2D, unitPixelSize, _offsetX, _offsetY, liveSpanPercentage);
+      }
+    );
+  }
+  
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
-    const String outerColor     = "#a00";
+    int radius = (unitPixelSize*sqrt(.5)).floor()-1;
+    int unitPixelSizeHalf = unitPixelSize~/2;
     
-    double liveSpanPercentage = _liveSpanPercentage();
-    
-    context2D..fillStyle = outerColor
-             ..fillRect(_offsetX, _offsetY, unitPixelSize, unitPixelSize);
+    int arcMiddleX = _offsetX+unitPixelSizeHalf;
+    int arcMiddleY = _offsetY+unitPixelSizeHalf;
+        
+    context2D..fillStyle = INNER_BLAST_COLOR
+             ..beginPath()
+             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
+             ..fill();
     
     blasts.forEach(
       (Blast blast) {
-        blast.repaint(context2D, unitPixelSize, _offsetX, _offsetY, outerColor);
+        blast.repaintInnerBlast(context2D, unitPixelSize, _offsetX, _offsetY, liveSpanPercentage);
       }
     );
   }
@@ -197,9 +242,9 @@ class Blast
     }
   }
   
-  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize, int offsetX, int offsetY, String blastColor)
-  {
-    context2D.fillStyle = blastColor;
+  void repaintOuterBlast(CanvasRenderingContext2D context2D, int unitPixelSize, int offsetX, int offsetY, double liveSpanPercentage)
+  {    
+    context2D.fillStyle = Explosion.OUTER_BLAST_COLOR;
     
     int rangePixelSize = _blastRange.hasTerminator && _blastRange.terminator is Bomb ?
         (unitPixelSize*(_blastRange.range-.5)).floor() :
@@ -215,6 +260,45 @@ class Blast
       context2D.fillRect(offsetX+unitPixelSize, offsetY, rangePixelSize, unitPixelSize);
     }
   }
+  
+  void repaintInnerBlast(CanvasRenderingContext2D context2D, int unitPixelSize, int offsetX, int offsetY, double liveSpanPercentage)
+  {
+    int _evenInnerBlastDiameter(double liveSpanPercentage, int unitPixelSize) {
+      //value in range [0,1] -> what is the maximum of the inner blast in relation to the outer blast
+      const double MAX_DIAMETER_FACTOR = .8;
+      //must be smaller than .5! (else the math breaks)
+      const double MIN_DELIMITER = .15;
+      double t = liveSpanPercentage-(2*liveSpanPercentage-1)*MIN_DELIMITER;
+      //compute the correct diameter
+      double diameter = sin(t*PI)*MAX_DIAMETER_FACTOR*unitPixelSize;
+      //now get the closest even int to it (because that's easiest to draw)
+      int evenDiameter = (diameter/2).round()*2;
+      return evenDiameter;
+    }
+    
+    int rangePixelSize = _blastRange.hasTerminator && _blastRange.terminator is Bomb ?
+        (unitPixelSize*(_blastRange.range-.5)).floor() :
+        (unitPixelSize*_blastRange.range);
+    
+    int evenInnerBlastDiameter = _evenInnerBlastDiameter(liveSpanPercentage, unitPixelSize);
+    //if the inner blast diameter is 0 there is nothing else to do
+    if(evenInnerBlastDiameter==0) {
+      return;
+    }
+    //else paint the inner blast
+    int borderOffset = (unitPixelSize-evenInnerBlastDiameter)~/2;
+    context2D.fillStyle = Explosion.INNER_BLAST_COLOR;
+    
+    if(_direction==Direction.UP) {
+      context2D.fillRect(offsetX+borderOffset, offsetY, evenInnerBlastDiameter, -rangePixelSize);
+    }else if(_direction==Direction.DOWN) {
+      context2D.fillRect(offsetX+borderOffset, offsetY+unitPixelSize, evenInnerBlastDiameter, rangePixelSize);
+    }else if(_direction==Direction.LEFT){
+      context2D.fillRect(offsetX, offsetY+borderOffset, -rangePixelSize, evenInnerBlastDiameter);
+    }else if(_direction==Direction.RIGHT){
+      context2D.fillRect(offsetX+unitPixelSize, offsetY+borderOffset, rangePixelSize, evenInnerBlastDiameter);
+    }
+  }
 }
 
 class BlastRange
@@ -226,4 +310,32 @@ class BlastRange
   bool get isNotEmpty=>range>0;
   
   BlastRange(this.terminator, this.range);
+}
+
+class Firework
+implements Repaintable
+{
+  final List<Explosion> _explosions;
+  
+  Firework(this._explosions);
+  
+  @override
+  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
+  {
+    _explosions.forEach(
+      (Explosion e) {
+        e.updateLivespanPercentage();
+      }
+    );
+    _explosions.forEach(
+      (Explosion e) {
+        e.repaintBackground(context2D, unitPixelSize);
+      }
+    );
+    _explosions.forEach(
+      (Explosion e) {
+        e.repaint(context2D, unitPixelSize);
+      }
+    );
+  }
 }
