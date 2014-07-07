@@ -6,10 +6,11 @@ body {
   font-weight: normal;
   line-height: 1.2em;
   margin: 15px;
+  color: #333;
 }
 
-h1, p {
-  color: #333;
+h1 {
+  font-size: 36px;
 }
 
 #appId {
@@ -20,10 +21,21 @@ h1, p {
   border-color: #000;
 }
 
-.msgPopup {
+#startPopup {
   position: absolute;
   text-align: center;
   background: #fff;
   border: 1px solid black;
-  padding: 3px;
+}
+
+#popupText {
+  font-size: 22px;
+  padding: 10px;
+}
+
+#popupButton {  
+  font-size: 20px;
+  margin-bottom: 5px;
+  margin-left: 10px;
+  margin-right: 10px;
 }

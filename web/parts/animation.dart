@@ -90,13 +90,16 @@ class GameCanvas
   {
 
     DivElement dialogDiv = new DivElement()
-                  ..classes.add("msgPopup")
-                  ..style.visibility = "hidden"; //hide first so perfect centered positioning can be computed
+          ..id = "startPopup"
+          ..style.visibility = "hidden"; //hide first so perfect centered positioning can be computed
     
-    DivElement textDiv = new DivElement();
-    textDiv.text = msg;
-    ButtonElement button = new ButtonElement();
-    button..text = buttonTxt
+    DivElement textDiv = new DivElement()
+          ..id = "popupText"
+          ..text = msg;
+    
+    ButtonElement button = new ButtonElement()
+          ..id = "popupButton"
+          ..text = buttonTxt
           ..onClick.first.then(
                (MouseEvent e){
                  _parent.children.remove(dialogDiv);

@@ -18,7 +18,7 @@ part 'parts/domain/powerups.dart';
 
 void main()
 {
-  const unitPixelSize    = 20;
+  const unitPixelSize    = 40;
   const unitWidth        = 9;
   const unitHeight       = 7;
   const border           = 9;          

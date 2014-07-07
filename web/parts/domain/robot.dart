@@ -9,14 +9,16 @@ implements ControlerListener
   RobotModel _model;
   RobotUI _ui;
   
-  Robot(UnitToPixelPosConverter pixelConv, this._config, this._level, int tileX, int tileY, bool connectRobotWithControler)
+  Robot(UnitToPixelPosConverter pixelConv, this._config, this._level, int tileX, int tileY)
   {
     _model = new RobotModel(_level, this, tileX.toDouble(), tileY.toDouble(), _config.initialBombs, _config.initialRange);
     _ui = new RobotUI(pixelConv, _model);
+  }
+  
+  void startRobot()
+  {
     //connect to a controler
-    if(connectRobotWithControler) {
-      _config.controler.controlerListener = this;
-    }
+    _config.controler.controlerListener = this;
   }
   
   void explode()

@@ -14,7 +14,7 @@ class Level
     _pixelConv = (double unitV)=>(unitV*unitPixelSize).round()+border;
   }
     
-  void init(Configuration config,{bool connectRobotsWithControler:true})
+  void initRound(Configuration config)
   {
     bool isCrateAllowed(int x, int y) {
       return x.isEven||y.isEven;
@@ -42,35 +42,47 @@ class Level
       cratesCreated.add(createCrateAt(_model._unitWidth-1, tileY));
     }
     
-    //add powerUps to crates add random points
+    assert(
+        cratesCreated.length >=
+        config.numberOfBombUpgrades+config.numberOfRangeUpgrades+config.numberOfMissingCrates
+    );
+    
+    //remove some crates and add powerUps to other at random points
     Random random = new Random();
-    //first bombUpgrades
+    //first remove some crates
+    for(int i=0;i<config.numberOfMissingCrates;i++) {
+      Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
+      _model.removeCrate(crate);
+    }
+    //then add bombUpgrades
     for(int i=0;i<config.numberOfBombUpgrades;i++) {
-      if(cratesCreated.isEmpty) {
-        break;
-      }
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
       crate._powerUp = new BombUpgrade(_pixelConv, this, crate._tileX, crate._tileY);
     }
-    //then rangeUpgrades
-    for(int i=0;i<config.numberOfBombUpgrades;i++) {
-      if(cratesCreated.isEmpty) {
-        break;
-      }
+    //then rangeUpgrades to some
+    for(int i=0;i<config.numberOfRangeUpgrades;i++) {
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
       crate._powerUp = new RangeUpgrade(_pixelConv, this, crate._tileX, crate._tileY);
     }
     
     // add robots/players
     for(var playerConfig in config.playerConfigs) {
-      createRobotAt(playerConfig, connectRobotsWithControler);
+      createRobotAt(playerConfig);
     }
   }
   
-  void createRobotAt(PlayerConfiguration config, bool connectRobotWithControler)
+  void startRound()
+  {
+    //start all the robots
+    _model.allRobots.forEach(
+        (Robot robot)=>robot.startRobot()
+    );
+  }
+  
+  void createRobotAt(PlayerConfiguration config)
   {
     Point<int> tile = config.startCorner.getTile(_model._unitWidth, _model._unitHeight);
-    Robot robot = new Robot(_pixelConv, config, this, tile.x, tile.y, connectRobotWithControler);
+    Robot robot = new Robot(_pixelConv, config, this, tile.x, tile.y);
     _model.addRobot(robot);
   }
   
@@ -319,6 +331,8 @@ class LevelModel
       return _robots[0];
     }
   }
+  
+  Iterable<Robot> get allRobots=>_robots;
   
   void removeExplosion(Explosion explosion)
   {

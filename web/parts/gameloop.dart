@@ -20,16 +20,15 @@ class GameLoop
     _config = getTwoPlayerConfig();
     
     //start the game as soon as the player clicks on 'start'
-    _level.init(_config, connectRobotsWithControler: false);
+    _level.initRound(_config);
     _gameCanvas.paint();
     _gameCanvas.showMessage("let's play!", "start", startRound);
   }
   
   void startRound()
   {
-    _level.init(_config);
-    
     _gameCanvas.animate = true;
+    _level.startRound();
   }
   
   /**
@@ -43,27 +42,41 @@ class GameLoop
     String roundResultMsg = winningPlayerName!=null ? "$winningPlayerName wins" : "draw"; 
     new Timer(
       new Duration(microseconds: 800),
-      ()=>_gameCanvas.showMessage(roundResultMsg, "restart", startRound)
+      ()=>_gameCanvas.showMessage(roundResultMsg, "restart", initNewRound)
     );
   }
   
-  Configuration getTwoPlayerConfig()
+  void initNewRound()
   {
-    Configuration config = new Configuration();
-    config.playerConfigs.add(new PlayerConfiguration("player1", Corner.UPPER_LEFT,  _controlers[0]));
-    config.playerConfigs.add(new PlayerConfiguration("player2", Corner.LOWER_RIGHT, _controlers[1]));
-    config.numberOfBombUpgrades = 6;
-    config.numberOfBombUpgrades = 4;
-    
-    return config;
+    _level.initRound(_config);
+    startRound();
+  }
+  
+  Configuration getTwoPlayerConfig()
+  {    
+    return new Configuration(
+        playerConfigs:
+          [new PlayerConfiguration("player1", Corner.UPPER_LEFT,  _controlers[0]),
+           new PlayerConfiguration("player2", Corner.LOWER_RIGHT, _controlers[1])],
+        numberOfBombUpgrades:  4,
+        numberOfRangeUpgrades: 6,
+        numberOfMissingCrates: 2
+     );
   }
 }
 
 class Configuration
 {
-  int numberOfRangeUpgrades = 0;
-  int numberOfBombUpgrades  = 0;
-  List<PlayerConfiguration> playerConfigs = new List<PlayerConfiguration>();
+  final int numberOfMissingCrates;
+  final int numberOfRangeUpgrades;
+  final int numberOfBombUpgrades;
+  final UnmodifiableListView<PlayerConfiguration> playerConfigs;
+  
+  Configuration(
+      {List<PlayerConfiguration> playerConfigs,
+      this.numberOfBombUpgrades, this.numberOfRangeUpgrades, this.numberOfMissingCrates}
+  ):
+    this.playerConfigs = new UnmodifiableListView(playerConfigs);
 }
 
 class PlayerConfiguration
