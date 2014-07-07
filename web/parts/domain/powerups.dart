@@ -39,14 +39,14 @@ extends PowerUp
     int arcMiddleX = _offsetX+radius;
     int arcMiddleY = _offsetY+radius;
     
-    context2D..fillStyle = Explosion.INNER_BLAST_COLOR
+    context2D..fillStyle = outerRingColor
+              ..beginPath()
+              ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
+              ..fill()
+             ..fillStyle = Explosion.INNER_BLAST_COLOR
              ..beginPath()
-             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
+             ..arc(arcMiddleX, arcMiddleY, radius-1, 0, 6.2)
              ..fill();
-    context2D..strokeStyle = outerRingColor
-             ..beginPath()
-             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
-             ..stroke();
   }
 }
 
@@ -65,7 +65,7 @@ extends PowerUp
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
-    const String color = "#333396";
+    const String bombBlueColor = "#333396";
     const String outerRingColor = "#000";
     
     int radius = unitPixelSize~/2;
@@ -73,13 +73,13 @@ extends PowerUp
     int arcMiddleX = _offsetX+radius;
     int arcMiddleY = _offsetY+radius;
     
-    context2D..fillStyle = color
+    context2D..fillStyle = outerRingColor
              ..beginPath()
              ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
+             ..fill()
+             ..fillStyle = bombBlueColor
+             ..beginPath()
+             ..arc(arcMiddleX, arcMiddleY, radius-1, 0, 6.2)
              ..fill();
-    context2D..strokeStyle = outerRingColor
-             ..beginPath()
-             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
-             ..stroke();
   }
 }

@@ -41,26 +41,32 @@ with Timed
     const String outerRingColor = "#000";
     const String outerColor     = "#a00";
     const String innerColor      = "#d3862b";
-    
-    int radius = unitPixelSize~/2;
+
     double radiusPercentage = _liveSpanPercentage();
+    
+    int borderRadius = unitPixelSize~/2;
+    int radius = borderRadius-1;
     int innerRadius = max(0,radius-(radius*radiusPercentage).ceil());
     
     int arcMiddleX = _offsetX+radius;
     int arcMiddleY = _offsetY+radius;
     
-    context2D..fillStyle = outerColor
+    context2D..fillStyle = outerRingColor
              ..beginPath()
              ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
-             ..fill();
-    context2D..fillStyle = innerColor
+             ..fill()
+             ..fillStyle = outerColor
+             ..beginPath()
+             ..arc(arcMiddleX, arcMiddleY, radius-1, 0, 6.2)
+             ..fill()
+             ..fillStyle = innerColor
              ..beginPath()
              ..arc(arcMiddleX, arcMiddleY, innerRadius, 0, 6.2)
              ..fill();
-    context2D..strokeStyle = outerRingColor
-             ..beginPath()
-             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
-             ..stroke();
+//    context2D..strokeStyle = outerRingColor
+//             ..beginPath()
+//             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
+//             ..stroke();
   }
 }
 
