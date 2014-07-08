@@ -321,9 +321,16 @@ class BlastRange
 class Firework
 implements Repaintable
 {
-  final List<Explosion> _explosions;
+  static Firework _firework = new Firework._();
+  List<Explosion> _explosions;
   
-  Firework(this._explosions);
+  Firework._();
+  
+  factory Firework(List<Explosion> explosions)
+  {
+    _firework._explosions = explosions;
+    return _firework;
+  }
   
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
