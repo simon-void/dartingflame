@@ -132,7 +132,7 @@ class Level
     else if(go is Robot) {
       _model.removeRobot(go);
       if(_model.onlyOneRobotLeft) {
-        Duration timeTillEndOfRound = new Duration(milliseconds: 300);
+        Duration timeTillEndOfRound = new Duration(milliseconds: 500);
         new Timer(timeTillEndOfRound, endRound);
       }
     }
