@@ -7,14 +7,14 @@ class GameLoop
   Level _level;
   Configuration _config;
   
-  GameLoop(HtmlElement appDiv, int unitWidth, int unitHeight, int unitPixelSize, int border):
+  GameLoop(HtmlElement appDiv, BaseConfiguration baseConfig):
     _gameCanvas = new GameCanvas(appDiv),
     _controlers = new List<Controler>()
   {
     //guaranteing this helps in painting
-    assert(unitPixelSize.isEven);
+    assert(baseConfig.tilePixelSize.isEven);
     
-    _level = new Level(unitPixelSize, unitWidth, unitHeight, border, this);    
+    _level = new Level(baseConfig, this);    
     _controlers.add(new Controler.wasdSpace(window.onKeyUp, window.onKeyDown));
     _controlers.add(new Controler.arrowsEnter(window.onKeyUp, window.onKeyDown));
     _config = getTwoPlayerConfig();
@@ -58,39 +58,10 @@ class GameLoop
         playerConfigs:
           [new PlayerConfiguration("player1", Corner.UPPER_LEFT,  _controlers[0]),
            new PlayerConfiguration("player2", Corner.LOWER_RIGHT, _controlers[1])],
-        numberOfBombUpgrades:  4,
-        numberOfRangeUpgrades: 6,
-        numberOfMissingCrates: 2
+        levelConfig: new LevelModConfiguration(
+          numberOfBombUpgrades:  4,
+          numberOfRangeUpgrades: 6,
+          numberOfMissingCrates: 2)
      );
   }
-}
-
-class Configuration
-{
-  final int numberOfMissingCrates;
-  final int numberOfRangeUpgrades;
-  final int numberOfBombUpgrades;
-  final UnmodifiableListView<PlayerConfiguration> playerConfigs;
-  
-  Configuration(
-      {List<PlayerConfiguration> playerConfigs,
-      this.numberOfBombUpgrades, this.numberOfRangeUpgrades, this.numberOfMissingCrates}
-  ):
-    this.playerConfigs = new UnmodifiableListView(playerConfigs);
-}
-
-class PlayerConfiguration
-{
-  final String playerName;
-  final Corner startCorner;
-  final Controler controler;
-  final int initialBombs;
-  final int initialRange;
-  
-  PlayerConfiguration(
-      this.playerName, this.startCorner, this.controler,
-      {int initialBombs:2, int initialRange:2}
-  ):
-    this.initialBombs = initialBombs,
-    this.initialRange = initialRange;
 }

@@ -7,6 +7,7 @@ import 'dart:math';
 
 part 'parts/animation.dart';
 part 'parts/collection.dart';
+part 'parts/configuration.dart';
 part 'parts/controler.dart';
 part 'parts/gameloop.dart';
 part 'parts/domain/basics.dart';
@@ -18,13 +19,15 @@ part 'parts/domain/powerups.dart';
 
 void main()
 {
-  const unitPixelSize    = 40;
-  const unitWidth        = 9;
-  const unitHeight       = 7;
-  const border           = 9;          
+  BaseConfiguration baseConfig = new BaseConfiguration(
+    tilePixelSize: 40,
+    widthTiles: 9,
+    heightTiles: 7,
+    border: 9
+  );          
   final HtmlElement appDiv = querySelector("#appId");
     
-  GameLoop gameLoop = new GameLoop(appDiv, unitWidth, unitHeight, unitPixelSize, border);
+  GameLoop gameLoop = new GameLoop(appDiv, baseConfig);
   
   //to figure out keyCodes by trying
 //  window.onKeyUp.listen(

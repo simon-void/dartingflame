@@ -5,13 +5,13 @@ class Level
   final GameLoop _gameLoop;
   final LevelModel _model;
   LevelUI _ui;
-  UnitToPixelPosConverter _pixelConv;
+  BaseConfiguration _baseConfig;
   
-  Level(int unitPixelSize, int unitWidth, int unitHeight, int border, this._gameLoop):
-    _model = new LevelModel(unitPixelSize, unitWidth, unitHeight, border)
+  Level(BaseConfiguration baseConfig, this._gameLoop):
+    _model = new LevelModel(baseConfig),
+    _baseConfig = baseConfig
   {
-    _ui    = new LevelUI(_model, _gameLoop._gameCanvas);
-    _pixelConv = (double unitV)=>(unitV*unitPixelSize).round()+border;
+    _ui    = new LevelUI(_model, _gameLoop._gameCanvas, baseConfig);
   }
     
   void initRound(Configuration config)
@@ -19,50 +19,59 @@ class Level
     bool isCrateAllowed(int x, int y) {
       return x.isEven||y.isEven;
     }
+    
+    //to increase readability let's make the variable names shorter
+    final UnitToPixelPosConverter pixelConv = _baseConfig.pixelConv;
+    final int widthTiles = _baseConfig.widthTiles;
+    final int heightTiles = _baseConfig.heightTiles;
+    final int numberOfBombUpgrades = config.levelConfig.numberOfBombUpgrades;
+    final int numberOfRangeUpgrades = config.levelConfig.numberOfRangeUpgrades;
+    final int numberOfMissingCrates = config.levelConfig.numberOfMissingCrates;
+    
     //remove all present objects
     _model.clear();
     
     List<Crate> cratesCreated = new List<Crate>();
     
     //and add new crates
-    final int middleWidthIndex = _model._unitWidth~/2;
-    for(int tileX=1;tileX<_model._unitWidth-1;tileX++) {
-      for(int tileY=1;tileY<_model._unitHeight-1;tileY++) {
+    final int middleWidthIndex = widthTiles~/2;
+    for(int tileX=1;tileX<widthTiles-1;tileX++) {
+      for(int tileY=1;tileY<heightTiles-1;tileY++) {
         if(tileX!=middleWidthIndex && isCrateAllowed(tileX, tileY)) {
           cratesCreated.add(createCrateAt(tileX, tileY));
         }
       }
     }
-    for(int tileX=3;tileX<_model._unitWidth-3;tileX++) {
+    for(int tileX=3;tileX<widthTiles-3;tileX++) {
       cratesCreated.add(createCrateAt(tileX, 0));
-      cratesCreated.add(createCrateAt(tileX, _model._unitHeight-1));
+      cratesCreated.add(createCrateAt(tileX, heightTiles-1));
     }
-    for(int tileY=2;tileY<_model._unitHeight-2;tileY++) {
+    for(int tileY=2;tileY<heightTiles-2;tileY++) {
       cratesCreated.add(createCrateAt(0, tileY));
-      cratesCreated.add(createCrateAt(_model._unitWidth-1, tileY));
+      cratesCreated.add(createCrateAt(_model._widthTiles-1, tileY));
     }
     
     assert(
         cratesCreated.length >=
-        config.numberOfBombUpgrades+config.numberOfRangeUpgrades+config.numberOfMissingCrates
+        numberOfBombUpgrades+numberOfRangeUpgrades+numberOfMissingCrates
     );
     
     //remove some crates and add powerUps to other at random points
     Random random = new Random();
     //first remove some crates
-    for(int i=0;i<config.numberOfMissingCrates;i++) {
+    for(int i=0;i<numberOfMissingCrates;i++) {
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
       _model.removeCrate(crate);
     }
     //then add bombUpgrades
-    for(int i=0;i<config.numberOfBombUpgrades;i++) {
+    for(int i=0;i<numberOfBombUpgrades;i++) {
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
-      crate._powerUp = new BombUpgrade(_pixelConv, this, crate._tileX, crate._tileY);
+      crate._powerUp = new BombUpgrade(_baseConfig.pixelConv, this, crate._tileX, crate._tileY);
     }
     //then rangeUpgrades to some
-    for(int i=0;i<config.numberOfRangeUpgrades;i++) {
+    for(int i=0;i<numberOfRangeUpgrades;i++) {
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
-      crate._powerUp = new RangeUpgrade(_pixelConv, this, crate._tileX, crate._tileY);
+      crate._powerUp = new RangeUpgrade(_baseConfig.pixelConv, this, crate._tileX, crate._tileY);
     }
     
     // add robots/players
@@ -81,21 +90,21 @@ class Level
   
   void createRobotAt(PlayerConfiguration config)
   {
-    Point<int> tile = config.startCorner.getTile(_model._unitWidth, _model._unitHeight);
-    Robot robot = new Robot(_pixelConv, config, this, tile.x, tile.y);
+    Point<int> tile = config.startCorner.getTile(_baseConfig.widthTiles, _baseConfig.heightTiles);
+    Robot robot = new Robot(_baseConfig.pixelConv, config, this, tile.x, tile.y);
     _model.addRobot(robot);
   }
   
   Explosion createExplosionAt(int tileX, int tileY, int explosionRadius, List<Blast> trigger)
   {
-    Explosion explosion = new Explosion(_pixelConv, this, tileX, tileY, explosionRadius, trigger);
+    Explosion explosion = new Explosion(_baseConfig.pixelConv, this, tileX, tileY, explosionRadius, trigger);
     _model.addExplosion(explosion);
     return explosion;
   }
   
   Crate createCrateAt(int tileX, int tileY)
   {
-    Crate crate = new Crate(_pixelConv, this, tileX, tileY);
+    Crate crate = new Crate(_baseConfig.pixelConv, this, tileX, tileY);
     _model.addCrate(crate);
     return crate;
   }
@@ -103,7 +112,7 @@ class Level
   bool createBombIfPossible(int tileX, int tileY, Robot parent)
   {
     if(!_model.containsBomb(tileX, tileY)) {
-      Bomb bomb = new Bomb(_pixelConv, this, tileX, tileY, parent);
+      Bomb bomb = new Bomb(_baseConfig.pixelConv, this, tileX, tileY, parent);
       _model.addBomb(bomb);
       return true;
     }
@@ -268,22 +277,18 @@ class LevelModel
   final Map<int, Explosion> _explosions;
   final Map<int, PowerUp> _powerUps;
   final List<Robot> _robots;
-  final int _border;
-  final int _unitPixelSize;
-  final int _unitWidth;
-  final int _unitHeight;
+  final int _heightTiles;
+  final int _widthTiles;
     
-  LevelModel(int unitPixelSize, int unitWidth, int unitHeight, int border):
-    _deadlyTiles   = new BucketMap<int>.filled(unitWidth*unitHeight, 0),
-    _bombs         = new BucketMap<Bomb>(unitWidth*unitHeight),
-    _crates        = new BucketMap<Crate>(unitWidth*unitHeight),
-    _explosions    = new BucketMap<Explosion>(unitWidth*unitHeight),
-    _powerUps      = new BucketMap<PowerUp>(unitWidth*unitHeight),
-    _robots        = new List<Robot>(),
-    _border        = border,
-    _unitPixelSize = unitPixelSize,
-    _unitHeight    = unitHeight,
-    _unitWidth     = unitWidth;
+  LevelModel(BaseConfiguration baseConfig):
+    _heightTiles   = baseConfig.heightTiles,
+    _widthTiles    = baseConfig.widthTiles,
+    _deadlyTiles   = new BucketMap<int>.filled(baseConfig.numberOfTiles, 0),
+    _bombs         = new BucketMap<Bomb>(baseConfig.numberOfTiles),
+    _crates        = new BucketMap<Crate>(baseConfig.numberOfTiles),
+    _explosions    = new BucketMap<Explosion>(baseConfig.numberOfTiles),
+    _powerUps      = new BucketMap<PowerUp>(baseConfig.numberOfTiles),
+    _robots        = new List<Robot>();
   
   void addBomb(Bomb bomb)
   {
@@ -377,7 +382,7 @@ class LevelModel
   {   
     //if the game is outside of the level return false
     bool notInRange(int x, int maxX)=> 0>x || x>=maxX;
-    if(notInRange(tileX, _unitWidth) || notInRange(tileY, _unitHeight)) {
+    if(notInRange(tileX, _widthTiles) || notInRange(tileY, _heightTiles)) {
       return true;
     }
     
@@ -427,10 +432,10 @@ class LevelModel
   
   int _getTileIndex(int tileX, int tileY)
   {
-    assert( 0<=tileX && tileX<_unitWidth );
-    assert( 0<=tileY && tileY<_unitHeight );
+    assert( 0<=tileX && tileX<_widthTiles );
+    assert( 0<=tileY && tileY<_heightTiles );
     
-    return tileX*_unitHeight + tileY;
+    return tileX*_heightTiles + tileY;
   }
   
   void addDeadlyTiles(Iterable<Point<int>> deadlyTiles)
@@ -462,15 +467,11 @@ class LevelUI
   static const String blockColor = "#000";
   static const String floorColor = "#909c90";
   final LevelModel _model;
-  final int _totalWidth;
-  final int _totalHeight;
+  final BaseConfiguration _baseConfig;
   
-  LevelUI(LevelModel model, GameCanvas gameCanvas):
-    _model       = model,
-    _totalWidth  = 2*model._border+model._unitWidth*model._unitPixelSize,
-    _totalHeight = 2*model._border+model._unitHeight*model._unitPixelSize
+  LevelUI(this._model, GameCanvas gameCanvas, this._baseConfig)
   {
-    gameCanvas.setProxyPaint(repaint, _totalWidth, _totalHeight);
+    gameCanvas.setProxyPaint(repaint, _baseConfig.totalPixelWidth, _baseConfig.totalPixelHeight);
   }
   
   void repaint(CanvasRenderingContext2D context2D)
@@ -483,14 +484,13 @@ class LevelUI
   void paintBackground(CanvasRenderingContext2D context2D)
   {
     context2D..fillStyle= floorColor
-             ..fillRect(0, 0, _totalWidth, _totalHeight);
+             ..fillRect(0, 0, _baseConfig.totalPixelWidth, _baseConfig.totalPixelHeight);
   }
   
   void paintObjects(CanvasRenderingContext2D context2D)
   {
     UI getUI(GameObject go)=>go.getUI();
     
-    int getOffset(double unitValue)=>_model._border + ((unitValue-1)*_model._unitPixelSize).round();
     //clear the old position
     paintBackground(context2D);
     //repaint the game Objects
@@ -503,31 +503,37 @@ class LevelUI
     allGameObjects.forEach(
       (Repaintable foregroundObject) {
         //foregroundObject.updatePosition();
-        foregroundObject.repaint(context2D, _model._unitPixelSize);
+        foregroundObject.repaint(context2D, _baseConfig.tilePixelSize);
       }
     );
   }
   
   void paintIndestructable(CanvasRenderingContext2D context2D)
   {
+    //to increase readability let's make the variable names shorter
+    final int border = _baseConfig.border;
+    final int totalWidth = _baseConfig.totalPixelWidth;
+    final int totalHeigth = _baseConfig.totalPixelHeight;
+    final int tileSize = _baseConfig.tilePixelSize;
+    final int widthTiles = _baseConfig.widthTiles;
+    final int heightTiles = _baseConfig.heightTiles;
+    
     //paint border
-    int border = _model._border;
     context2D..fillStyle= blockColor
-             ..fillRect(0, 0, border, _totalHeight)
-             ..fillRect(0, 0, _totalWidth, border)
-             ..fillRect(_totalWidth, _totalHeight, -border, -_totalHeight)
-             ..fillRect(_totalWidth, _totalHeight, -_totalWidth, -border);
+             ..fillRect(0, 0, border, totalHeigth)
+             ..fillRect(0, 0, totalWidth, border)
+             ..fillRect(totalWidth, totalHeigth, -border, -totalHeigth)
+             ..fillRect(totalWidth, totalHeigth, -totalWidth, -border);
     
     
     //paint all the undestructable boxes
-    int getOffset(int unitValue)=>border + ((unitValue-1)*_model._unitPixelSize);
-    for(int unitX=2;unitX<=_model._unitWidth;unitX+=2) {
-      for(int unitY=2;unitY<=_model._unitHeight;unitY+=2) {
-        int offsetX = getOffset(unitX);
-        int offsetY = getOffset(unitY);
+    for(int tileX=2;tileX<=widthTiles;tileX+=2) {
+      for(int tileY=2;tileY<=heightTiles;tileY+=2) {
+        int offsetX = _baseConfig.getPixelOffset(tileX);
+        int offsetY = _baseConfig.getPixelOffset(tileY);
         
         context2D..fillStyle= blockColor
-                 ..fillRect(offsetX, offsetY, _model._unitPixelSize, _model._unitPixelSize);
+                 ..fillRect(offsetX, offsetY, tileSize, tileSize);
       }
     }
   }
