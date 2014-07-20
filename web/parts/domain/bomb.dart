@@ -116,7 +116,7 @@ class Explosion
 extends UnmovableObject
 with Timed
 {
-  static const int MILLIES_TO_LIVE = 500;
+  static const int MILLIES_TO_LIVE = 600;
   static const String OUTER_BLAST_COLOR = "#a00";
   static const String INNER_BLAST_COLOR = "#d3862b";
   final Level _level;
