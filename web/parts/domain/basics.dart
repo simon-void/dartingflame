@@ -12,14 +12,14 @@ abstract class GameObject
   Repaintable getUI();
 }
 
-abstract class BasicUnmovableObject
+abstract class UnmovableObject
 {
   final int _offsetX;
   final int _offsetY;
   final int _tileX;
   final int _tileY;
 
-  BasicUnmovableObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY):
+  UnmovableObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY):
     _offsetX  = pixelConv(tileX.toDouble()),
     _offsetY  = pixelConv(tileY.toDouble()),
     _tileX    = tileX,
@@ -28,14 +28,14 @@ abstract class BasicUnmovableObject
   bool isOnTile(int tileX, int tileY)=>tileX==_tileX && tileY==_tileY;
 }
 
-abstract class UnmovableObject extends BasicUnmovableObject implements GameObject, Repaintable
+abstract class RepaintableUnmovableGameObject
+extends UnmovableObject
+implements GameObject, Repaintable
 {
   final CanvasImageSource _template;
 
-  UnmovableObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY, this._template):
+  RepaintableUnmovableGameObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY, this._template):
     super(pixelConv, tileX, tileY);
-  
-  bool isOnTile(int tileX, int tileY)=>tileX==_tileX && tileY==_tileY;
   
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
@@ -51,7 +51,7 @@ abstract class UnmovableObject extends BasicUnmovableObject implements GameObjec
 }
 
 class Crate
-extends UnmovableObject
+extends RepaintableUnmovableGameObject
 {
   final Level _level;
   PowerUp _powerUp;

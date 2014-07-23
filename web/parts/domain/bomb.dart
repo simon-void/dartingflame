@@ -1,7 +1,7 @@
 part of dartingflame;
 
 class Bomb
-extends UnmovableObject
+extends RepaintableUnmovableGameObject
 with Timed
 {
   static const int MILLIES_TO_LIVE = 2000;
@@ -103,7 +103,7 @@ class Timed
 }
 
 class Explosion
-extends BasicUnmovableObject
+extends UnmovableObject
 with Timed
 {
   static const int MILLIES_TO_LIVE = 600;
@@ -298,7 +298,7 @@ class Blast
 
 class BlastRange
 {
-  final UnmovableObject terminator;
+  final RepaintableUnmovableGameObject terminator;
   final int range;
   
   bool get hasTerminator=>terminator!=null;

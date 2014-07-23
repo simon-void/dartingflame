@@ -125,7 +125,7 @@ class Level
     _model.addPowerUp(powerUp);
   }
   
-  void remove(BasicUnmovableObject go)
+  void remove(UnmovableObject go)
   {
     if(go is Explosion) {
       _model.removeExplosion(go);
@@ -189,7 +189,7 @@ class Level
   
   BlastRange getBlastRange(int tileX, int tileY, Direction blastDirection, int maxBlastRange)
   {
-    UnmovableObject getBombOrCrateOrNull(int tileX, int tileY) {
+    RepaintableUnmovableGameObject getBombOrCrateOrNull(int tileX, int tileY) {
       Crate crate = _model.getCreate(tileX, tileY);
       //if crate is not null return it
       if(crate!=null) return crate;
@@ -199,7 +199,7 @@ class Level
     }
     
     int range = 0;
-    UnmovableObject terminator = null;
+    RepaintableUnmovableGameObject terminator = null;
     
     for(int i=0;i<maxBlastRange;i++) {
       if(blastDirection==Direction.UP) {
