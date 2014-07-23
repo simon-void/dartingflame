@@ -10,7 +10,7 @@ with Timed
   final Robot _parent;
   final List<Blast> _trigger; 
   
-  Bomb(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, this._parent, ResourceLoader resourceLoader):
+  Bomb(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, this._parent, ResourceLoader resourceLoader):
     super(pixelConv, tileX, tileY, resourceLoader.bombTemplate),
     _trigger = new List<Blast>()
   {
@@ -114,7 +114,7 @@ with Timed
   final List<Point<int>> blastedTiles;
   double liveSpanPercentage = .0;
   
-  Explosion(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, int explosionRadius, List<Blast> trigger):
+  Explosion(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, int explosionRadius, List<Blast> trigger):
     super(pixelConv, tileX, tileY),
     blasts = new List<Blast>(),
     blastedTiles = [new Point<int>(tileX, tileY)]

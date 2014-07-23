@@ -5,7 +5,7 @@ extends RepaintableUnmovableGameObject
 {
   final Level _level;
   
-  PowerUp(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, CanvasImageSource template)
+  PowerUp(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, CanvasImageSource template)
   :super(pixelConv, tileX, tileY, template);
   
   void getCollectedByRobot(Robot robot)
@@ -20,7 +20,7 @@ extends RepaintableUnmovableGameObject
 class RangeUpgrade
 extends PowerUp
 {
-  RangeUpgrade(UnitToPixelPosConverter pixelConv, Level level, int tileX, int tileY, ResourceLoader resourceLoader)
+  RangeUpgrade(UnitPosToPixelConverter pixelConv, Level level, int tileX, int tileY, ResourceLoader resourceLoader)
     :super(pixelConv, level, tileX, tileY, resourceLoader.rangeUpgradeTemplate);
   
   @override
@@ -33,7 +33,7 @@ extends PowerUp
 class BombUpgrade
 extends PowerUp
 {
-  BombUpgrade(UnitToPixelPosConverter pixelConv, Level level, int tileX, int tileY, ResourceLoader resourceLoader)
+  BombUpgrade(UnitPosToPixelConverter pixelConv, Level level, int tileX, int tileY, ResourceLoader resourceLoader)
   :super(pixelConv, level, tileX, tileY, resourceLoader.bombUpgradeTemplate);
   
   @override

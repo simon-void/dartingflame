@@ -1,6 +1,22 @@
 part of dartingflame;
 
-typedef int UnitToPixelPosConverter(double widthOrHeight);
+class UnitPosToPixelConverter
+{
+  final int _border;
+  final int _tilePixelSize;
+  
+  UnitPosToPixelConverter(this._border, this._tilePixelSize);
+  
+  int _posToPixel(double unitV)   =>(unitV*_tilePixelSize).round()+_border;
+  
+  int tileToPixelOffset(int tileIndex)=>(tileIndex*_tilePixelSize)+_border;
+
+  Point<int> getPixelOffsetFromTile(int tileX, int tileY) 
+    => new Point<int>(tileToPixelOffset(tileX), tileToPixelOffset(tileY));
+    
+  Point<int> getPixelOffsetFromPos(double posX, double posY) 
+      => new Point<int>(_posToPixel(posX), _posToPixel(posY));
+}
 
 abstract class Repaintable
 {
@@ -19,9 +35,9 @@ abstract class UnmovableObject
   final int _tileX;
   final int _tileY;
 
-  UnmovableObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY):
-    _offsetX  = pixelConv(tileX.toDouble()),
-    _offsetY  = pixelConv(tileY.toDouble()),
+  UnmovableObject(UnitPosToPixelConverter pixelConv, int tileX, int tileY):
+    _offsetX  = pixelConv.tileToPixelOffset(tileX),
+    _offsetY  = pixelConv.tileToPixelOffset(tileY),
     _tileX    = tileX,
     _tileY    = tileY;
   
@@ -34,7 +50,7 @@ implements GameObject, Repaintable
 {
   final CanvasImageSource _template;
 
-  RepaintableUnmovableGameObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY, this._template):
+  RepaintableUnmovableGameObject(UnitPosToPixelConverter pixelConv, int tileX, int tileY, this._template):
     super(pixelConv, tileX, tileY);
   
   @override
@@ -57,7 +73,7 @@ extends RepaintableUnmovableGameObject
   PowerUp _powerUp;
   int _blastCounter = 0;
   
-  Crate(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, ResourceLoader resourceLoader):
+  Crate(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, ResourceLoader resourceLoader):
     super(pixelConv, tileX, tileY, resourceLoader.crateTemplate);
 
   void hitByInitialBlast(Blast blast)

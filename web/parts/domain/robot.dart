@@ -9,7 +9,7 @@ implements ControlerListener
   RobotModel _model;
   RobotUI _ui;
   
-  Robot(UnitToPixelPosConverter pixelConv, this._config, this._level, int tileX, int tileY, ResourceLoader resourceLoader)
+  Robot(UnitPosToPixelConverter pixelConv, this._config, this._level, int tileX, int tileY, ResourceLoader resourceLoader)
   {
     _model = new RobotModel(_level, this, tileX.toDouble(), tileY.toDouble(), _config.initialBombs, _config.initialRange);
     _ui = new RobotUI(pixelConv, _model, resourceLoader);
@@ -273,7 +273,7 @@ extends Repaintable
 {
   final RobotModel _model;
   final CanvasImageSource _robotTemplate;
-  final UnitToPixelPosConverter _pixelConv;
+  final UnitPosToPixelConverter _pixelConv;
   
   RobotUI(this._pixelConv, this._model, ResourceLoader resourceLoader):
     this._robotTemplate = resourceLoader.robotTemplate;
@@ -282,10 +282,9 @@ extends Repaintable
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
     final Point<double> robotPos = _model.currentLocation;
-    final int offsetX = _pixelConv(robotPos.x);
-    final int offsetY = _pixelConv(robotPos.y);
+    final Point<int> offset = _pixelConv.getPixelOffsetFromPos(robotPos.x, robotPos.y);
     
-    context2D.drawImage(_robotTemplate, offsetX, offsetY);
+    context2D.drawImage(_robotTemplate, offset.x, offset.y);
   }
 }
 

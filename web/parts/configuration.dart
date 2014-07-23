@@ -10,7 +10,7 @@ class BaseConfiguration
   final int numberOfTiles;
   final int totalPixelWidth;
   final int totalPixelHeight;
-  UnitToPixelPosConverter pixelConv;
+  final UnitPosToPixelConverter pixelConv;
   
   BaseConfiguration({int tilePixelSize, int widthTiles, int heightTiles, int border}):
     this.tilePixelSize = tilePixelSize,
@@ -19,12 +19,8 @@ class BaseConfiguration
     this.heightTiles = heightTiles,
     this.numberOfTiles = widthTiles*heightTiles,
     this.totalPixelWidth  = 2*border+widthTiles*tilePixelSize,
-    this.totalPixelHeight = 2*border+heightTiles*tilePixelSize
-  {
-    pixelConv = (double unitV)=>(unitV*tilePixelSize).round()+border;
-  }
-  
-  int getPixelOffset(int tileIndex)=>border + ((tileIndex-1)*tilePixelSize);
+    this.totalPixelHeight = 2*border+heightTiles*tilePixelSize,
+    this.pixelConv = new UnitPosToPixelConverter(border, tilePixelSize);
 }
 
 class Configuration

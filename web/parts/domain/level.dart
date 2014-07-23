@@ -22,7 +22,7 @@ class Level
     }
     
     //to increase readability let's make the variable names shorter
-    final UnitToPixelPosConverter pixelConv = _baseConfig.pixelConv;
+    final UnitPosToPixelConverter pixelConv = _baseConfig.pixelConv;
     final int widthTiles = _baseConfig.widthTiles;
     final int heightTiles = _baseConfig.heightTiles;
     final int numberOfBombUpgrades = config.levelConfig.numberOfBombUpgrades;
@@ -530,13 +530,12 @@ class LevelUI
     
     
     //paint all the undestructable boxes
-    for(int tileX=2;tileX<=widthTiles;tileX+=2) {
-      for(int tileY=2;tileY<=heightTiles;tileY+=2) {
-        int offsetX = _baseConfig.getPixelOffset(tileX);
-        int offsetY = _baseConfig.getPixelOffset(tileY);
+    for(int tileX=1;tileX<widthTiles;tileX+=2) {
+      for(int tileY=1;tileY<heightTiles;tileY+=2) {
+        final Point<int> offset = _baseConfig.pixelConv.getPixelOffsetFromTile(tileX, tileY);
         
         context2D..fillStyle= blockColor
-                 ..fillRect(offsetX, offsetY, tileSize, tileSize);
+                 ..fillRect(offset.x, offset.y, tileSize, tileSize);
       }
     }
   }
