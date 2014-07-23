@@ -311,7 +311,7 @@ with Timed
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
     //tick tock
-    _liveSpanPercentage();
+    _tickTock();
     
     super.repaint(context2D, unitPixelSize);
   }

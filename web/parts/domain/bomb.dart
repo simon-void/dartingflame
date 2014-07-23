@@ -44,7 +44,7 @@ with Timed
     //paint explosion timer
     const String innerColor      = "#d3862b";
 
-    double radiusPercentage = _liveSpanPercentage();
+    double radiusPercentage = _tickTock();
     
     int borderRadius = unitPixelSize~/2;
     int radius = borderRadius-1;
@@ -89,7 +89,7 @@ class Timed
    *    called is bigger than _milliesToLive millisenconds 
    * 3) calls onTimeout the moment isAlive is set to false
    */
-  double _liveSpanPercentage()
+  double _tickTock()
   {
     double milliesLived = nowInMillies()-_creationTimeMillies;    
     if(_isAlive && milliesLived>_realMilliesToLive) {
@@ -167,7 +167,7 @@ with Timed
   
   void updateLivespanPercentage()
   {
-    liveSpanPercentage = _liveSpanPercentage();
+    liveSpanPercentage = _tickTock();
   }
   
   void repaintOuterBlast(CanvasRenderingContext2D context2D, int unitPixelSize)
