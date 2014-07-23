@@ -170,7 +170,7 @@ with Timed
     liveSpanPercentage = _liveSpanPercentage();
   }
   
-  void repaintBackground(CanvasRenderingContext2D context2D, int unitPixelSize)
+  void repaintOuterBlast(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
     int radius = (unitPixelSize*sqrt(.5)).floor()+1;
     int unitPixelSizeHalf = unitPixelSize~/2;
@@ -190,7 +190,7 @@ with Timed
     );
   }
   
-  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
+  void repaintInnerBlast(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
     int radius = (unitPixelSize*sqrt(.5)).floor()-1;
     int unitPixelSizeHalf = unitPixelSize~/2;
@@ -329,14 +329,16 @@ implements Repaintable
         e.updateLivespanPercentage();
       }
     );
+    //paint the outer blast of all explosions first
+    //so that no outer blast of one explosion will overpaint the inner blast of another
     _explosions.forEach(
       (Explosion e) {
-        e.repaintBackground(context2D, unitPixelSize);
+        e.repaintOuterBlast(context2D, unitPixelSize);
       }
     );
     _explosions.forEach(
       (Explosion e) {
-        e.repaint(context2D, unitPixelSize);
+        e.repaintInnerBlast(context2D, unitPixelSize);
       }
     );
   }
