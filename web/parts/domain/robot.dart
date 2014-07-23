@@ -9,10 +9,10 @@ implements ControlerListener
   RobotModel _model;
   RobotUI _ui;
   
-  Robot(UnitToPixelPosConverter pixelConv, this._config, this._level, int tileX, int tileY)
+  Robot(UnitToPixelPosConverter pixelConv, this._config, this._level, int tileX, int tileY, ResourceLoader resourceLoader)
   {
     _model = new RobotModel(_level, this, tileX.toDouble(), tileY.toDouble(), _config.initialBombs, _config.initialRange);
-    _ui = new RobotUI(pixelConv, _model);
+    _ui = new RobotUI(pixelConv, _model, resourceLoader);
   }
   
   void startRobot()
@@ -25,10 +25,10 @@ implements ControlerListener
   {
 //    _ui.color="#a50";
     _config.controler.controlerListener = null;
-    _level.remove(this);
+    _level.removeRobot(this);
   }
   
-  UI getUI()=>_ui;
+  Repaintable getUI()=>_ui;
   
   int get explosionRadius=>_model._explosionRadius;
   
@@ -269,12 +269,14 @@ class RobotModel
 }
 
 class RobotUI
-extends UI
+extends Repaintable
 {
   final RobotModel _model;
-  static const String color = "#000";
+  final CanvasImageSource _robotTemplate;
+  final UnitToPixelPosConverter _pixelConv;
   
-  RobotUI(UnitToPixelPosConverter pixelConv, this._model):super(pixelConv);    
+  RobotUI(this._pixelConv, this._model, ResourceLoader resourceLoader):
+    this._robotTemplate = resourceLoader.robotTemplate;
     
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
@@ -282,22 +284,8 @@ extends UI
     final Point<double> robotPos = _model.currentLocation;
     final int offsetX = _pixelConv(robotPos.x);
     final int offsetY = _pixelConv(robotPos.y);
-
-//    final int radius = (unitPixelSize/2).floor();
-//    context2D..fillStyle = color
-//             ..beginPath()
-//             ..arc(offsetX+radius, offsetY+radius, radius, 0, 6.2)
-//             ..fill();
     
-    final int unitSizeHalf = unitPixelSize~/2;
-    context2D..fillStyle = color
-             ..beginPath()
-             ..moveTo(offsetX+unitSizeHalf,  offsetY)
-             ..lineTo(offsetX+unitPixelSize, offsetY+unitSizeHalf)
-             ..lineTo(offsetX+unitSizeHalf,  offsetY+unitPixelSize)
-             ..lineTo(offsetX,               offsetY+unitSizeHalf)
-             ..closePath()
-             ..fill();
+    context2D.drawImage(_robotTemplate, offsetX, offsetY);
   }
 }
 

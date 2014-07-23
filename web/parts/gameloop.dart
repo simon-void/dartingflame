@@ -7,14 +7,14 @@ class GameLoop
   Level _level;
   Configuration _config;
   
-  GameLoop(HtmlElement appDiv, BaseConfiguration baseConfig):
+  GameLoop(HtmlElement appDiv, BaseConfiguration baseConfig, ResourceLoader resourceLoader):
     _gameCanvas = new GameCanvas(appDiv),
     _controlers = new List<Controler>()
   {
     //guaranteing this helps in painting
     assert(baseConfig.tilePixelSize.isEven);
     
-    _level = new Level(baseConfig, this);    
+    _level = new Level(baseConfig, this, resourceLoader);    
     _controlers.add(new Controler.wasdSpace(window.onKeyUp, window.onKeyDown));
     _controlers.add(new Controler.arrowsEnter(window.onKeyUp, window.onKeyDown));
     _config = getTwoPlayerConfig();

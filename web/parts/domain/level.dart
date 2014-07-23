@@ -6,8 +6,9 @@ class Level
   final LevelModel _model;
   LevelUI _ui;
   BaseConfiguration _baseConfig;
+  ResourceLoader _resourceLoader;
   
-  Level(BaseConfiguration baseConfig, this._gameLoop):
+  Level(BaseConfiguration baseConfig, this._gameLoop, this._resourceLoader):
     _model = new LevelModel(baseConfig),
     _baseConfig = baseConfig
   {
@@ -66,12 +67,12 @@ class Level
     //then add bombUpgrades
     for(int i=0;i<numberOfBombUpgrades;i++) {
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
-      crate._powerUp = new BombUpgrade(_baseConfig.pixelConv, this, crate._tileX, crate._tileY);
+      crate._powerUp = new BombUpgrade(_baseConfig.pixelConv, this, crate._tileX, crate._tileY, _resourceLoader);
     }
     //then rangeUpgrades to some
     for(int i=0;i<numberOfRangeUpgrades;i++) {
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
-      crate._powerUp = new RangeUpgrade(_baseConfig.pixelConv, this, crate._tileX, crate._tileY);
+      crate._powerUp = new RangeUpgrade(_baseConfig.pixelConv, this, crate._tileX, crate._tileY, _resourceLoader);
     }
     
     // add robots/players
@@ -91,7 +92,7 @@ class Level
   void createRobotAt(PlayerConfiguration config)
   {
     Point<int> tile = config.startCorner.getTile(_baseConfig.widthTiles, _baseConfig.heightTiles);
-    Robot robot = new Robot(_baseConfig.pixelConv, config, this, tile.x, tile.y);
+    Robot robot = new Robot(_baseConfig.pixelConv, config, this, tile.x, tile.y, _resourceLoader);
     _model.addRobot(robot);
   }
   
@@ -104,7 +105,7 @@ class Level
   
   Crate createCrateAt(int tileX, int tileY)
   {
-    Crate crate = new Crate(_baseConfig.pixelConv, this, tileX, tileY);
+    Crate crate = new Crate(_baseConfig.pixelConv, this, tileX, tileY, _resourceLoader);
     _model.addCrate(crate);
     return crate;
   }
@@ -112,7 +113,7 @@ class Level
   bool createBombIfPossible(int tileX, int tileY, Robot parent)
   {
     if(!_model.containsBomb(tileX, tileY)) {
-      Bomb bomb = new Bomb(_baseConfig.pixelConv, this, tileX, tileY, parent);
+      Bomb bomb = new Bomb(_baseConfig.pixelConv, this, tileX, tileY, parent, _resourceLoader);
       _model.addBomb(bomb);
       return true;
     }
@@ -124,7 +125,7 @@ class Level
     _model.addPowerUp(powerUp);
   }
   
-  void remove(GameObject go)
+  void remove(BasicUnmovableObject go)
   {
     if(go is Explosion) {
       _model.removeExplosion(go);
@@ -138,12 +139,14 @@ class Level
     else if(go is PowerUp) {
       _model.removePowerUp(go);
     }
-    else if(go is Robot) {
-      _model.removeRobot(go);
-      if(_model.onlyOneRobotLeft) {
-        Duration timeTillEndOfRound = new Duration(milliseconds: 490);
-        new Timer(timeTillEndOfRound, endRound);
-      }
+  }
+  
+  void removeRobot(Robot robot)
+  {
+    _model.removeRobot(robot);
+    if(_model.onlyOneRobotLeft) {
+      Duration timeTillEndOfRound = new Duration(milliseconds: 490);
+      new Timer(timeTillEndOfRound, endRound);
     }
   }
   
@@ -489,7 +492,7 @@ class LevelUI
   
   void paintObjects(CanvasRenderingContext2D context2D)
   {
-    UI getUI(GameObject go)=>go.getUI();
+    Repaintable getUI(GameObject go)=>go.getUI();
     
     //clear the old position
     paintBackground(context2D);

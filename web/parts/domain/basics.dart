@@ -7,37 +7,47 @@ abstract class Repaintable
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize);
 }
 
-abstract class UI implements Repaintable
-{
-  final UnitToPixelPosConverter _pixelConv;
-  
-  UI(this._pixelConv);
-}
-
 abstract class GameObject
 {  
-  UI getUI();
+  Repaintable getUI();
 }
 
-abstract class UnmovableObject extends UI implements GameObject
+abstract class BasicUnmovableObject
 {
   final int _offsetX;
   final int _offsetY;
   final int _tileX;
   final int _tileY;
 
-  UnmovableObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY)
-    :super(pixelConv),
-    _offsetX = pixelConv(tileX.toDouble()),
-    _offsetY = pixelConv(tileY.toDouble()),
-    _tileX   = tileX,
-    _tileY   = tileY;
-  
-  UI getUI() {
-    return this;
-  }
+  BasicUnmovableObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY):
+    _offsetX  = pixelConv(tileX.toDouble()),
+    _offsetY  = pixelConv(tileY.toDouble()),
+    _tileX    = tileX,
+    _tileY    = tileY;
   
   bool isOnTile(int tileX, int tileY)=>tileX==_tileX && tileY==_tileY;
+}
+
+abstract class UnmovableObject extends BasicUnmovableObject implements GameObject, Repaintable
+{
+  final CanvasImageSource _template;
+
+  UnmovableObject(UnitToPixelPosConverter pixelConv, int tileX, int tileY, this._template):
+    super(pixelConv, tileX, tileY);
+  
+  bool isOnTile(int tileX, int tileY)=>tileX==_tileX && tileY==_tileY;
+  
+  @override
+  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
+  {
+    context2D.drawImage(_template, _offsetX, _offsetY);
+  }
+  
+  @override
+  Repaintable getUI()
+  {
+    return this;
+  }
 }
 
 class Crate
@@ -47,8 +57,8 @@ extends UnmovableObject
   PowerUp _powerUp;
   int _blastCounter = 0;
   
-  Crate(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY):
-    super(pixelConv, tileX, tileY);
+  Crate(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, ResourceLoader resourceLoader):
+    super(pixelConv, tileX, tileY, resourceLoader.crateTemplate);
 
   void hitByInitialBlast(Blast blast)
   {
@@ -64,14 +74,6 @@ extends UnmovableObject
     if(_powerUp!=null) {
       _level.addPowerUp(_powerUp);
     }
-  }
-  
-  @override
-  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
-  {
-    const String color = "#5d5d5d";
-    context2D..fillStyle = color
-             ..fillRect(_offsetX, _offsetY, unitPixelSize, unitPixelSize);
   }
 }
 

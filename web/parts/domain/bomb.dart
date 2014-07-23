@@ -10,8 +10,8 @@ with Timed
   final Robot _parent;
   final List<Blast> _trigger; 
   
-  Bomb(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, this._parent):
-    super(pixelConv, tileX, tileY),
+  Bomb(UnitToPixelPosConverter pixelConv, this._level, int tileX, int tileY, this._parent, ResourceLoader resourceLoader):
+    super(pixelConv, tileX, tileY, resourceLoader.bombTemplate),
     _trigger = new List<Blast>()
   {
     startTimer(MILLIES_TO_LIVE, _goBooom);
@@ -38,8 +38,10 @@ with Timed
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
-    const String outerRingColor = "#000";
-    const String outerColor     = "#a00";
+    //paint bomb template
+    super.repaint(context2D, unitPixelSize);
+    
+    //paint explosion timer
     const String innerColor      = "#d3862b";
 
     double radiusPercentage = _liveSpanPercentage();
@@ -48,25 +50,13 @@ with Timed
     int radius = borderRadius-1;
     int innerRadius = max(0,radius-(radius*radiusPercentage).ceil());
     
-    int arcMiddleX = _offsetX+radius;
-    int arcMiddleY = _offsetY+radius;
+    int arcMiddleX = _offsetX+borderRadius;
+    int arcMiddleY = _offsetY+borderRadius;
     
-    context2D..fillStyle = outerRingColor
-             ..beginPath()
-             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
-             ..fill()
-             ..fillStyle = outerColor
-             ..beginPath()
-             ..arc(arcMiddleX, arcMiddleY, radius-1, 0, 6.2)
-             ..fill()
-             ..fillStyle = innerColor
+    context2D..fillStyle = innerColor
              ..beginPath()
              ..arc(arcMiddleX, arcMiddleY, innerRadius, 0, 6.2)
              ..fill();
-//    context2D..strokeStyle = outerRingColor
-//             ..beginPath()
-//             ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
-//             ..stroke();
   }
 }
 
@@ -113,7 +103,7 @@ class Timed
 }
 
 class Explosion
-extends UnmovableObject
+extends BasicUnmovableObject
 with Timed
 {
   static const int MILLIES_TO_LIVE = 600;
@@ -200,7 +190,6 @@ with Timed
     );
   }
   
-  @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
     int radius = (unitPixelSize*sqrt(.5)).floor()-1;

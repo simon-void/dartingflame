@@ -5,7 +5,8 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:math';
 
-part 'parts/animation.dart';
+part 'parts/grafics/animation.dart';
+part 'parts/grafics/resources.dart';
 part 'parts/collection.dart';
 part 'parts/configuration.dart';
 part 'parts/controler.dart';
@@ -26,8 +27,9 @@ void main()
     border: 9
   );          
   final HtmlElement appDiv = querySelector("#appId");
+  final ResourceLoader resourceLoader = new ResourceLoader(baseConfig.tilePixelSize);
     
-  GameLoop gameLoop = new GameLoop(appDiv, baseConfig);
+  GameLoop gameLoop = new GameLoop(appDiv, baseConfig, resourceLoader);
   
   //to figure out keyCodes by trying
 //  window.onKeyUp.listen(
