@@ -103,6 +103,14 @@ class Level
     return explosion;
   }
   
+  DeadRobot createDeadRobotAt(Point<double> pos)
+  {
+    Point<int> offset = _baseConfig.pixelConv.getPixelOffsetFromPos(pos.x, pos.y);
+    DeadRobot deadRobot = new DeadRobot(this, offset.x, offset.y, _resourceLoader);
+    _model.addDeadRobot(deadRobot);
+    return deadRobot;
+  }
+  
   Crate createCrateAt(int tileX, int tileY)
   {
     Crate crate = new Crate(_baseConfig.pixelConv, this, tileX, tileY, _resourceLoader);
@@ -138,6 +146,9 @@ class Level
     }
     else if(go is PowerUp) {
       _model.removePowerUp(go);
+    }
+    else if(go is DeadRobot) {
+      _model.removeDeadRobot(go);
     }
   }
   
@@ -189,7 +200,7 @@ class Level
   
   BlastRange getBlastRange(int tileX, int tileY, Direction blastDirection, int maxBlastRange)
   {
-    RepaintableUnmovableGameObject getBombOrCrateOrNull(int tileX, int tileY) {
+    RepaintableTileBasedGameObject getBombOrCrateOrNull(int tileX, int tileY) {
       Crate crate = _model.getCreate(tileX, tileY);
       //if crate is not null return it
       if(crate!=null) return crate;
@@ -199,7 +210,7 @@ class Level
     }
     
     int range = 0;
-    RepaintableUnmovableGameObject terminator = null;
+    RepaintableTileBasedGameObject terminator = null;
     
     for(int i=0;i<maxBlastRange;i++) {
       if(blastDirection==Direction.UP) {
@@ -280,6 +291,7 @@ class LevelModel
   final Map<int, Explosion> _explosions;
   final Map<int, PowerUp> _powerUps;
   final List<Robot> _robots;
+  final List<DeadRobot> _deadRobots;
   final int _heightTiles;
   final int _widthTiles;
     
@@ -291,7 +303,8 @@ class LevelModel
     _crates        = new BucketMap<Crate>(baseConfig.numberOfTiles),
     _explosions    = new BucketMap<Explosion>(baseConfig.numberOfTiles),
     _powerUps      = new BucketMap<PowerUp>(baseConfig.numberOfTiles),
-    _robots        = new List<Robot>();
+    _robots        = new List<Robot>(),
+    _deadRobots    = new List<DeadRobot>();
   
   void addBomb(Bomb bomb)
   {
@@ -320,6 +333,11 @@ class LevelModel
   void addRobot(Robot robot)
   {
     _robots.add(robot);
+  }
+  
+  void addDeadRobot(DeadRobot robot)
+  {
+    _deadRobots.add(robot);
   }
   
   void removeBomb(Bomb bomb)
@@ -371,6 +389,11 @@ class LevelModel
     _robots.remove(robot);
   }
   
+  void removeDeadRobot(DeadRobot robot)
+  {
+    _deadRobots.remove(robot);
+  }
+  
   void clear()
   {
     _bombs.clear();
@@ -378,6 +401,7 @@ class LevelModel
     _explosions.clear();
     _powerUps.clear();
     _robots.clear();
+    _deadRobots.clear();
     _deadlyTiles.clear();
   }
 
@@ -502,7 +526,9 @@ class LevelUI
     allGameObjects.addAll(_model._crates.values);
     allGameObjects.add( new Firework(_model._explosions.values));
     allGameObjects.addAll(_model._bombs.values);
+    allGameObjects.addAll(_model._deadRobots);
     allGameObjects.addAll(_model._robots.map(getUI));
+    
     allGameObjects.forEach(
       (Repaintable foregroundObject) {
         //foregroundObject.updatePosition();

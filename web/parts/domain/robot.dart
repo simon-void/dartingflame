@@ -25,6 +25,7 @@ implements ControlerListener
   {
 //    _ui.color="#a50";
     _config.controler.controlerListener = null;
+    _level.createDeadRobotAt(_model._lastLoaction);
     _level.removeRobot(this);
   }
   
@@ -285,6 +286,34 @@ extends Repaintable
     final Point<int> offset = _pixelConv.getPixelOffsetFromPos(robotPos.x, robotPos.y);
     
     context2D.drawImage(_robotTemplate, offset.x, offset.y);
+  }
+}
+
+class DeadRobot
+extends RepaintableUnmovableGameObject
+with Timed
+{
+  static const int MILLIES_TO_LIVE = 200;
+  final Level _level;
+  
+  DeadRobot(this._level, int offsetX, int offsetY, ResourceLoader resourceLoader)
+  :super(offsetX, offsetY, resourceLoader.deadRobotTemplate)
+  {
+    startTimer(MILLIES_TO_LIVE, _fadeOut);
+  }
+  
+  void _fadeOut()
+  {
+    _level.remove(this);
+  }
+  
+  @override
+  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
+  {
+    //tick tock
+    _liveSpanPercentage();
+    
+    super.repaint(context2D, unitPixelSize);
   }
 }
 

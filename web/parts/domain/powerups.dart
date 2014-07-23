@@ -1,7 +1,7 @@
 part of dartingflame;
 
 abstract class PowerUp
-extends RepaintableUnmovableGameObject
+extends RepaintableTileBasedGameObject
 {
   final Level _level;
   

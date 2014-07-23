@@ -3,6 +3,7 @@ part of dartingflame;
 class ResourceLoader
 {
   final CanvasImageSource robotTemplate;
+  final CanvasImageSource deadRobotTemplate;
   final CanvasImageSource bombTemplate;
   final CanvasImageSource crateTemplate;
   final CanvasImageSource bombUpgradeTemplate;
@@ -10,12 +11,14 @@ class ResourceLoader
   
   ResourceLoader(int tilePixelSize):
     robotTemplate        = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
+    deadRobotTemplate    = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
     bombTemplate         = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
     crateTemplate        = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
     bombUpgradeTemplate  = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
     rangeUpgradeTemplate = new CanvasElement(width: tilePixelSize, height: tilePixelSize)    
   {
     _initRobotTemplate(tilePixelSize, robotTemplate);
+    _initDeadRobotTemplate(tilePixelSize, deadRobotTemplate);
     _initBombTemplate(tilePixelSize, bombTemplate);
     _initCrateTemplate(tilePixelSize, crateTemplate);
     _initBombUpgradeTemplate(tilePixelSize, bombUpgradeTemplate);
@@ -27,6 +30,19 @@ class ResourceLoader
     const String color = "#000";
     final int unitSizeHalf = tilePixelSize~/2;
     canvas.context2D..fillStyle = color
+                    ..beginPath()
+                    ..moveTo(unitSizeHalf,  0)
+                    ..lineTo(tilePixelSize, unitSizeHalf)
+                    ..lineTo(unitSizeHalf,  tilePixelSize)
+                    ..lineTo(0,             unitSizeHalf)
+                    ..closePath()
+                    ..fill();
+  }
+  
+  void _initDeadRobotTemplate(int tilePixelSize, CanvasElement canvas)
+  {
+    final int unitSizeHalf = tilePixelSize~/2;
+    canvas.context2D..fillStyle = Explosion.OUTER_BLAST_COLOR
                     ..beginPath()
                     ..moveTo(unitSizeHalf,  0)
                     ..lineTo(tilePixelSize, unitSizeHalf)

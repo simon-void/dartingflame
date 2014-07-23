@@ -32,25 +32,30 @@ abstract class UnmovableObject
 {
   final int _offsetX;
   final int _offsetY;
+
+  UnmovableObject(this._offsetX, this._offsetY);
+}
+
+abstract class TileBasedObject extends UnmovableObject
+{
   final int _tileX;
   final int _tileY;
 
-  UnmovableObject(UnitPosToPixelConverter pixelConv, int tileX, int tileY):
-    _offsetX  = pixelConv.tileToPixelOffset(tileX),
-    _offsetY  = pixelConv.tileToPixelOffset(tileY),
+  TileBasedObject(UnitPosToPixelConverter pixelConv, int tileX, int tileY):
+    super(pixelConv.tileToPixelOffset(tileX), pixelConv.tileToPixelOffset(tileY)),
     _tileX    = tileX,
     _tileY    = tileY;
   
   bool isOnTile(int tileX, int tileY)=>tileX==_tileX && tileY==_tileY;
 }
 
-abstract class RepaintableUnmovableGameObject
-extends UnmovableObject
+abstract class RepaintableTileBasedGameObject
+extends TileBasedObject
 implements GameObject, Repaintable
 {
   final CanvasImageSource _template;
 
-  RepaintableUnmovableGameObject(UnitPosToPixelConverter pixelConv, int tileX, int tileY, this._template):
+  RepaintableTileBasedGameObject(UnitPosToPixelConverter pixelConv, int tileX, int tileY, this._template):
     super(pixelConv, tileX, tileY);
   
   @override
@@ -66,8 +71,30 @@ implements GameObject, Repaintable
   }
 }
 
+abstract class RepaintableUnmovableGameObject
+extends UnmovableObject
+implements GameObject, Repaintable
+{
+  final CanvasImageSource _template;
+
+  RepaintableUnmovableGameObject(int offsetX, int offsetY, this._template):
+    super(offsetX, offsetY);
+  
+  @override
+  void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
+  {
+    context2D.drawImage(_template, _offsetX, _offsetY);
+  }
+  
+  @override
+  Repaintable getUI()
+  {
+    return this;
+  }
+}
+
 class Crate
-extends RepaintableUnmovableGameObject
+extends RepaintableTileBasedGameObject
 {
   final Level _level;
   PowerUp _powerUp;
