@@ -38,13 +38,14 @@ class Configuration
 class PlayerConfiguration
 {
   final String playerName;
+  final String playerColor;
   final Corner startCorner;
   final Controler controler;
   final int initialBombs;
   final int initialRange;
   
   PlayerConfiguration(
-      this.playerName, this.startCorner, this.controler,
+      this.playerName, this.playerColor, this.startCorner, this.controler,
       {int initialBombs:2, int initialRange:2}
   ):
     this.initialBombs = initialBombs,

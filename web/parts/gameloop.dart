@@ -56,8 +56,8 @@ class GameLoop
   {    
     return new Configuration(
         playerConfigs:
-          [new PlayerConfiguration("player1", Corner.UPPER_LEFT,  _controlers[0]),
-           new PlayerConfiguration("player2", Corner.LOWER_RIGHT, _controlers[1])],
+          [new PlayerConfiguration("player1", "#447", Corner.UPPER_LEFT,  _controlers[0]),
+           new PlayerConfiguration("player2", "#252", Corner.LOWER_RIGHT, _controlers[1])],
         levelConfig: new LevelModConfiguration(
           numberOfBombUpgrades:  4,
           numberOfRangeUpgrades: 6,

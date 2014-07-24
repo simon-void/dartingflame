@@ -12,7 +12,7 @@ implements ControlerListener
   Robot(UnitPosToPixelConverter pixelConv, this._config, this._level, int tileX, int tileY, ResourceLoader resourceLoader)
   {
     _model = new RobotModel(_level, this, tileX.toDouble(), tileY.toDouble(), _config.initialBombs, _config.initialRange);
-    _ui = new RobotUI(pixelConv, _model, resourceLoader);
+    _ui = new RobotUI(pixelConv, _model, resourceLoader, _config.playerColor);
   }
   
   void startRobot()
@@ -109,8 +109,9 @@ class RobotModel
   int _bombsAvailable;
   int _explosionRadius;
   double _lastTimeInMillies = nowInMillies();
-  Movement _currentDirection = Movement.NONE;
-  Movement _nextDirection = Movement.NONE;
+  Direction _currentDirection = Direction.UP;
+  Movement _currentMovement = Movement.NONE;
+  Movement _nextMovement = Movement.NONE;
   Point<double> _lastLoaction;
   
   RobotModel(this._level, this._robot, double initialX, double initialY, this._bombsAvailable, this._explosionRadius):
@@ -119,7 +120,7 @@ class RobotModel
   Point<double> get currentLocation
   {
     assert(_lastTimeInMillies!=null);
-    assert(_currentDirection!=null);
+    assert(_currentMovement!=null);
     assert(_lastLoaction!=null);
     
     //compute the difference to last location computation, update the last time we checked to now
@@ -127,37 +128,37 @@ class RobotModel
     double deltaMillies = nowMillies-_lastTimeInMillies;
     _lastTimeInMillies  = nowMillies;
     
-    if(_currentDirection!=Movement.NONE) {
+    if(_currentMovement!=Movement.NONE) {
       //and compute how far you came
       double deltaDistance = (_unitsPerSecond * deltaMillies) / 1000;      
-      _lastLoaction = _moveIfPossible(_lastLoaction, deltaDistance, _currentDirection);
+      _lastLoaction = _moveIfPossible(_lastLoaction, deltaDistance, _currentMovement);
     }
     
     return _lastLoaction;
   }
   
-  void updateDirection(Movement newDirection)
+  void updateDirection(Movement newMovement)
   {
-    assert(newDirection!=null);
-    assert(_currentDirection!=null);
-    assert(_nextDirection!=null);
+    assert(newMovement!=null);
+    assert(_currentMovement!=null);
+    assert(_nextMovement!=null);
     
     //update direction implicitly in call to currentLocation
     Point<double> currentPos = currentLocation;
     
     if(_inTransit(currentPos)) {
       //if the robot is between tiles he can only reverse his direction
-      if(newDirection.hasSameAxis(_currentDirection)) {
-        _currentDirection = newDirection;
-        _nextDirection    = newDirection;
+      if(newMovement.hasSameAxis(_currentMovement)) {
+        _updateCurrentMovement(newMovement);
+        _nextMovement    = newMovement;
       //else use that direction after you hit a tile
       }else{
-        _nextDirection = newDirection;
+        _nextMovement = newMovement;
       }
     //else you can go in any direction
     }else{
-      _currentDirection = newDirection;
-      _nextDirection    = newDirection;
+      _updateCurrentMovement(newMovement);
+      _nextMovement = newMovement;
     }
   }
   
@@ -218,8 +219,8 @@ class RobotModel
         _level.robotEntersTile(_robot, toTile.x, toTile.y);
         return getEndPoint(fromTile, distance, direction);
       }else{
-        _currentDirection = Movement.NONE;
-        _nextDirection    = Movement.NONE;
+        _updateCurrentMovement(Movement.NONE);
+        _nextMovement = Movement.NONE;
         return fromTile; 
       }
     }
@@ -249,9 +250,9 @@ class RobotModel
         //go to tile than give over to moveIfPossibleFromTile(..) with restDistance
         Point<double> toTile = getEndTilePos(transientPoint, distanceToNewTile, direction);
         //walk in new Direction the remaining distance
-        _currentDirection = _nextDirection;
+        _updateCurrentMovement(_nextMovement);
         double newDistance = distance-distanceToNewTile;
-        return moveIfPossibleFromTile(toTile, newDistance, _nextDirection);
+        return moveIfPossibleFromTile(toTile, newDistance, _nextMovement);
       }
     }
     
@@ -267,25 +268,36 @@ class RobotModel
     bool isNaturalNum(double d)=>d.roundToDouble()==d;
     return !(isNaturalNum(pos.x)&&isNaturalNum(pos.y)); 
   }
+  
+  void _updateCurrentMovement(Movement newMovement)
+  {
+    assert(newMovement!=null);
+    
+    _currentMovement = newMovement;
+    if(newMovement!=Movement.NONE) {
+      _currentDirection = Direction.fromMovement(newMovement);
+    }
+  }
 }
 
 class RobotUI
 extends Repaintable
 {
   final RobotModel _model;
-  final CanvasImageSource _robotTemplate;
+  final Map<Direction, CanvasImageSource> _robotTemplateByDirection;
   final UnitPosToPixelConverter _pixelConv;
   
-  RobotUI(this._pixelConv, this._model, ResourceLoader resourceLoader):
-    this._robotTemplate = resourceLoader.robotTemplate;
+  RobotUI(this._pixelConv, this._model, ResourceLoader resourceLoader, String playerColor):
+    this._robotTemplateByDirection = resourceLoader.robotTemplates(playerColor);
     
   @override
   void repaint(CanvasRenderingContext2D context2D, int unitPixelSize)
   {
     final Point<double> robotPos = _model.currentLocation;
     final Point<int> offset = _pixelConv.getPixelOffsetFromPos(robotPos.x, robotPos.y);
+    final CanvasImageSource robotTemplate = _robotTemplateByDirection[_model._currentDirection];
     
-    context2D.drawImage(_robotTemplate, offset.x, offset.y);
+    context2D.drawImage(robotTemplate, offset.x, offset.y);
   }
 }
 
@@ -336,7 +348,7 @@ class Movement
   }
   
   @override
-  String toString()=>"Direction.$_name";
+  String toString()=>"Movement.$_name";
   
   String get name=>_name;
 }

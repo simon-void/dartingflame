@@ -129,6 +129,25 @@ class Direction
   
   static List<Direction> values()=>[UP, RIGHT, DOWN, LEFT];
   
+  static Direction fromMovement(Movement movement)
+  {
+    assert(movement!=null);
+    assert(movement!=Movement.NONE);
+    
+    if(movement==Movement.UP) {
+      return Direction.UP;
+    }
+    else if(movement==Movement.RIGHT) {
+      return Direction.RIGHT;
+    }
+    else if(movement==Movement.DOWN) {
+      return Direction.DOWN;
+    }
+    else /*(movement==Movement.LEFT)*/ {
+      return Direction.LEFT;
+    }
+  }
+  
   Direction._();
   
   bool isOposite(Direction other)
