@@ -7,14 +7,14 @@ class ResourceLoader
   final CanvasElement _bombTemplate;
   final CanvasElement _crateTemplate;
   final CanvasElement _bombUpgradeTemplate;
-//  final CanvasElement _multibombUpgradeTemplate;
+  final CanvasElement _multibombUpgradeTemplate;
   final CanvasElement _rangeUpgradeTemplate;
   
   CanvasImageSource get deadRobotTemplate=>_deadRobotTemplate;
   CanvasImageSource get bombTemplate=>_bombTemplate;
   CanvasImageSource get crateTemplate=>_crateTemplate;
   CanvasImageSource get bombUpgradeTemplate=>_bombUpgradeTemplate;
-//  CanvasImageSource get multibombUpgradeTemplate=>_multibombUpgradeTemplate;
+  CanvasImageSource get multibombUpgradeTemplate=>_multibombUpgradeTemplate;
   CanvasImageSource get rangeUpgradeTemplate=>_rangeUpgradeTemplate;
   
   Map<Direction, CanvasImageSource> robotTemplates(String playerColor)
@@ -56,7 +56,7 @@ class ResourceLoader
     _bombTemplate             = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
     _crateTemplate            = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
     _bombUpgradeTemplate      = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
-//    _multibombUpgradeTemplate = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
+    _multibombUpgradeTemplate = new CanvasElement(width: tilePixelSize, height: tilePixelSize),
     _rangeUpgradeTemplate     = new CanvasElement(width: tilePixelSize, height: tilePixelSize)
   {
     _initRobotTemplateUp(_robotBaseTemplateUp);
@@ -64,6 +64,7 @@ class ResourceLoader
     _initBombTemplate(_bombTemplate);
     _initCrateTemplate(_crateTemplate);
     _initBombUpgradeTemplate(_bombUpgradeTemplate);
+    _initMultibombUpgradeTemplate(_multibombUpgradeTemplate);
     _initRangeUpgradeTemplate(_rangeUpgradeTemplate);
   }
   
@@ -169,6 +170,28 @@ class ResourceLoader
                     ..closePath()
                     ..fill();
   }
+  
+  void _initMultibombUpgradeTemplate(CanvasElement canvas)
+  {
+    const String outerRingColor = "#000";
+    const String multiBombColor = "#339633";
+            
+    double radius = canvas.width/2;
+        
+    double arcMiddleX = radius;
+    double arcMiddleY = radius;
+    
+    canvas.context2D..fillStyle = outerRingColor
+                    ..beginPath()
+                    ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
+                    ..closePath()
+                    ..fill()
+                    ..fillStyle = multiBombColor
+                    ..beginPath()
+                    ..arc(arcMiddleX, arcMiddleY, radius-1, 0, 6.2)
+                    ..closePath()
+                    ..fill();
+    }
   
   void _initRangeUpgradeTemplate(CanvasElement canvas)
   {

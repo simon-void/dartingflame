@@ -26,6 +26,7 @@ class Level
     final int widthTiles = _baseConfig.widthTiles;
     final int heightTiles = _baseConfig.heightTiles;
     final int numberOfBombUpgrades = config.levelConfig.numberOfBombUpgrades;
+    final int numberOfMultiBombUpgrades = config.levelConfig.numberOfMultiBombUpgrades;
     final int numberOfRangeUpgrades = config.levelConfig.numberOfRangeUpgrades;
     final int numberOfMissingCrates = config.levelConfig.numberOfMissingCrates;
     
@@ -54,7 +55,7 @@ class Level
     
     assert(
         cratesCreated.length >=
-        numberOfBombUpgrades+numberOfRangeUpgrades+numberOfMissingCrates
+        numberOfBombUpgrades+numberOfRangeUpgrades+numberOfMissingCrates+numberOfMultiBombUpgrades
     );
     
     //remove some crates and add powerUps to other at random points
@@ -63,6 +64,11 @@ class Level
     for(int i=0;i<numberOfMissingCrates;i++) {
       Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
       _model.removeCrate(crate);
+    }
+    //then add multibombUpgrades
+    for(int i=0;i<numberOfMultiBombUpgrades;i++) {
+      Crate crate = cratesCreated.removeAt(random.nextInt(cratesCreated.length));
+      crate._powerUp = new MultibombUpgrade(_baseConfig.pixelConv, this, crate._tileX, crate._tileY, _resourceLoader);
     }
     //then add bombUpgrades
     for(int i=0;i<numberOfBombUpgrades;i++) {
@@ -118,6 +124,9 @@ class Level
     return crate;
   }
   
+  /**
+   * @returns true if a bomb was created, false if the robot was standing on a bomb
+   */
   bool createBombIfPossible(int tileX, int tileY, Robot parent)
   {
     if(!_model.containsBomb(tileX, tileY)) {
@@ -126,6 +135,23 @@ class Level
       return true;
     }
     return false;
+  }
+  
+  /**
+   * @returns the number of bombs that could be created
+   */
+  int createMultiBombIfPossible(Point<int> tile, int maxMultiBombRange, Direction direction, Robot parent)
+  {
+    int multiBombRang = getMultiBombRange(tile, direction, maxMultiBombRange);
+    
+
+    for(int i=0; i<multiBombRang; i++) {
+      tile = Tile.nextTile(tile.x, tile.y, direction);
+      Bomb bomb = new Bomb(_baseConfig.pixelConv, this, tile.x, tile.y, parent, _resourceLoader);
+      _model.addBomb(bomb);
+    }
+  
+    return multiBombRang;
   }
   
   void addPowerUp(PowerUp powerUp)
@@ -211,28 +237,49 @@ class Level
     
     int range = 0;
     RepaintableTileBasedGameObject terminator = null;
+    Point<int> tile = new Point<int>(tileX, tileY);
     
     for(int i=0;i<maxBlastRange;i++) {
-      if(blastDirection==Direction.UP) {
-        tileY--;
-      }else if(blastDirection==Direction.DOWN) {
-        tileY++;
-      }else if(blastDirection==Direction.LEFT){
-        tileX--;
-      }else if(blastDirection==Direction.RIGHT){
-        tileX++;
-      }
-      if(_model.isIndestructable(tileX, tileY)) {
+      tile = Tile.nextTile(tile.x, tile.y, blastDirection);
+      if(_model.isIndestructable(tile.x, tile.y)) {
         break;
       }
       range++;
-      terminator = getBombOrCrateOrNull(tileX, tileY);
+      terminator = getBombOrCrateOrNull(tile.x, tile.y);
       if(terminator!=null) {
         break;
       }
     }
     
     return new BlastRange(terminator, range);
+  }
+  
+  int getMultiBombRange(Point<int> tile, Direction direction, int maxMultiBombRange)
+  {
+    List<Point<int>> tilesOccupiedByRobots = new List<Point<int>>();
+    _model.allRobots.forEach((Robot robot)=>tilesOccupiedByRobots.addAll(robot.getOccupiedTiles()));
+    
+    
+    bool isCompletlyFree(int tileX, int tileY) {
+      return !(_model.isIndestructable(tileX, tileY)
+            || _model.containsCreate(tileX, tileY)
+            || _model.containsBomb(tileX, tileY)
+            //TODO make this more efficient
+            || tilesOccupiedByRobots.contains(new Point<int>(tileX, tileY)));
+    }
+    
+    int range = 0;
+    bool explodeLastBombImediatly = false;
+    
+    for(int i=0;i<maxMultiBombRange;i++) {
+      tile = Tile.nextTile(tile.x, tile.y, direction);
+      if(!isCompletlyFree(tile.x, tile.y)) {
+        break;
+      }
+      range++;
+    }
+    
+    return range;
   }
   
   void robotEntersTile(Robot robot, int tileX, int tileY)

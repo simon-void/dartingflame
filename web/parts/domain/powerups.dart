@@ -42,3 +42,16 @@ extends PowerUp
     robot.addAvailableBomb();
   }
 }
+
+class MultibombUpgrade
+extends PowerUp
+{
+  MultibombUpgrade(UnitPosToPixelConverter pixelConv, Level level, int tileX, int tileY, ResourceLoader resourceLoader)
+  :super(pixelConv, level, tileX, tileY, resourceLoader.multibombUpgradeTemplate);
+  
+  @override
+  void upgradeRobot(Robot robot)
+  {
+    robot.activateMultibomb();
+  }
+}

@@ -164,7 +164,7 @@ class Tile
 {
   static Point<int> posToTile(Point<double> pos)
   {
-    return new Point<int>(pos.x.toInt(), pos.y.toInt());
+    return new Point<int>(pos.x.round(), pos.y.round());
   }
   
   static Point<int> nextTile(int tileX, int tileY, Direction direction)

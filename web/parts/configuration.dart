@@ -57,8 +57,9 @@ class LevelModConfiguration
   final int numberOfMissingCrates;
   final int numberOfRangeUpgrades;
   final int numberOfBombUpgrades;
+  final int numberOfMultiBombUpgrades;
   
   LevelModConfiguration(
-      {this.numberOfBombUpgrades, this.numberOfRangeUpgrades, this.numberOfMissingCrates}
+      {this.numberOfBombUpgrades, this.numberOfMultiBombUpgrades, this.numberOfRangeUpgrades, this.numberOfMissingCrates}
   );
 }

@@ -43,18 +43,36 @@ implements ControlerListener
     _model._bombsAvailable++;
   }
   
+  void activateMultibomb()
+  {
+    _model._hasMultibomb = true;
+  }
+  
   void layBomb()
   {
     //create a bomb at closest position if one is available
     if(_model._bombsAvailable>0) {
       Point<double> pos = _model.currentLocation;
-      bool bombCreated = _level.createBombIfPossible(
-          pos.x.round(),
-          pos.y.round(),
-          this);
+      Point<int> tile = Tile.posToTile(pos);
+      bool bombCreated = _level.createBombIfPossible(tile.x, tile.y, this);
       if(bombCreated) {
         _model._bombsAvailable--;
+      }else{
+        layMultiBomb(tile);
       }
+    }
+  }
+  
+  void layMultiBomb(Point<int> tile)
+  {
+    //check if robot does multibomb and is standing in the middle of a tile
+    if(_model._hasMultibomb && _model._isNotMoving()) {
+      int numberOfMultiBombs = _level.createMultiBombIfPossible(
+          tile, 
+          _model._bombsAvailable,
+          _model._currentDirection
+          , this);
+      _model._bombsAvailable-=numberOfMultiBombs;
     }
   }
   
@@ -108,6 +126,7 @@ class RobotModel
   final Robot _robot;
   int _bombsAvailable;
   int _explosionRadius;
+  bool _hasMultibomb = false;
   double _lastTimeInMillies = nowInMillies();
   Direction _currentDirection = Direction.UP;
   Movement _currentMovement = Movement.NONE;
@@ -268,6 +287,8 @@ class RobotModel
     bool isNaturalNum(double d)=>d.roundToDouble()==d;
     return !(isNaturalNum(pos.x)&&isNaturalNum(pos.y)); 
   }
+  
+  bool _isNotMoving() =>_currentMovement==Movement.NONE;
   
   void _updateCurrentMovement(Movement newMovement)
   {
