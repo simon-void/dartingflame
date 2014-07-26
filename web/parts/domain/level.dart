@@ -142,14 +142,19 @@ class Level
    */
   int createMultiBombIfPossible(Point<int> tile, int maxMultiBombRange, Direction direction, Robot parent)
   {
-    int multiBombRang = getMultiBombRange(tile, direction, maxMultiBombRange);
-    
+    int multiBombRang = getMultiBombRange(tile, direction, maxMultiBombRange);    
 
     for(int i=0; i<multiBombRang; i++) {
       tile = Tile.nextTile(tile.x, tile.y, direction);
       Bomb bomb = new Bomb(_baseConfig.pixelConv, this, tile.x, tile.y, parent, _resourceLoader);
       _model.addBomb(bomb);
+      //if there is a powerup where the bomb has been placed than remove that powerup
       _model.removePowerUpFromTile(tile.x, tile.y);
+      //if there are blasts where the bomb has been placed than trigger the bomb
+      Iterable<Blast> blastsOnTile = _model.getBlastsOfTile(tile.x, tile.y);
+      if(blastsOnTile.isNotEmpty) {
+        blastsOnTile.forEach((Blast blast)=>bomb.triggerByBlast(blast));
+      }
     }
   
     return multiBombRang;
@@ -299,9 +304,9 @@ class Level
     }
   }
   
-  void addDeadlyTiles(Iterable<Point<int>> deadlyTiles)
+  void addDeadlyTiles(Iterable<Point<int>> deadlyTiles, Blast blast)
   {
-    _model.addDeadlyTiles(deadlyTiles);
+    _model.addDeadlyTiles(deadlyTiles, blast);
     
     //check if robots are caugth in the blast
     List<Robot> deadRobots = [];
@@ -324,16 +329,16 @@ class Level
     }
   }
   
-  void removeDeadlyTiles(Iterable<Point<int>> deadlyTiles)
+  void removeDeadlyTiles(Iterable<Point<int>> deadlyTiles, Blast blast)
   {
-    _model.removeDeadlyTiles(deadlyTiles);
+    _model.removeDeadlyTiles(deadlyTiles, blast);
   }
   
 }
 
 class LevelModel
 {
-  final Map<int, int> _deadlyTiles;
+  final Map<int, List<Blast>> _deadlyTiles;
   final Map<int, Bomb>  _bombs;
   final Map<int, Crate> _crates;
   final Map<int, Explosion> _explosions;
@@ -346,7 +351,7 @@ class LevelModel
   LevelModel(BaseConfiguration baseConfig):
     _heightTiles   = baseConfig.heightTiles,
     _widthTiles    = baseConfig.widthTiles,
-    _deadlyTiles   = new BucketMap<int>.filled(baseConfig.numberOfTiles, 0),
+    _deadlyTiles   = new BucketMapOfList<Blast>(baseConfig.numberOfTiles),
     _bombs         = new BucketMap<Bomb>(baseConfig.numberOfTiles),
     _crates        = new BucketMap<Crate>(baseConfig.numberOfTiles),
     _explosions    = new BucketMap<Explosion>(baseConfig.numberOfTiles),
@@ -513,27 +518,31 @@ class LevelModel
     return tileX*_heightTiles + tileY;
   }
   
-  void addDeadlyTiles(Iterable<Point<int>> deadlyTiles)
+  void addDeadlyTiles(Iterable<Point<int>> deadlyTiles, Blast blast)
   {
     for(var deadlyTile in deadlyTiles) {
       int tileIndex = _getTileIndex(deadlyTile.x, deadlyTile.y);
-      _deadlyTiles[tileIndex] = _deadlyTiles[tileIndex]+1;
+      _deadlyTiles[tileIndex].add(blast);
     }
   }
   
-  void removeDeadlyTiles(Iterable<Point<int>> deadlyTiles)
+  void removeDeadlyTiles(Iterable<Point<int>> deadlyTiles, Blast blast)
   {
     for(var deadlyTile in deadlyTiles) {
       int tileIndex = _getTileIndex(deadlyTile.x, deadlyTile.y);
-      _deadlyTiles[tileIndex] = _deadlyTiles[tileIndex]-1;
+      _deadlyTiles[tileIndex].remove(blast);
     }
   }
   
   bool isDeadlyTile(int tileX, int tileY)
   {
+    return getBlastsOfTile(tileX, tileY).isNotEmpty;
+  }
+  
+  Iterable<Blast> getBlastsOfTile(int tileX, int tileY)
+  {
     int tileIndex = _getTileIndex(tileX, tileY);
-    int explosionCounter = _deadlyTiles[tileIndex];
-    return explosionCounter!=0;
+    return _deadlyTiles[tileIndex];
   }
 }
 

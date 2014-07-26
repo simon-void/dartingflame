@@ -17,7 +17,7 @@ with Timed
     startTimer(MILLIES_TO_LIVE, _goBooom);
   }
   
-  void triggeredByExplosion(Blast blast)
+  void triggerByBlast(Blast blast)
   {
     //only the first blast that hits this bomb can shorten its remaining time
     if(_trigger.isEmpty) {
@@ -111,21 +111,24 @@ with Timed
   static const String INNER_BLAST_COLOR = "#d3862b";
   final Level _level;
   final List<Blast> blasts;
-  final List<Point<int>> blastedTiles;
+  final Map<Blast, List<Point<int>>> blastedTiles;
   double liveSpanPercentage = .0;
   
   Explosion(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, int explosionRadius, List<Blast> trigger):
     super(pixelConv, tileX, tileY),
     blasts = new List<Blast>(),
-    blastedTiles = [new Point<int>(tileX, tileY)]
+    blastedTiles = new Map<Blast, List<Point<int>>>()
   {
-    void collectBlastedTiles(List<Point<int>> blastedTileCollection, Blast blast)
+    void collectBlastedTiles(Map<Blast, List<Point<int>>> blastsWithEffectedTiles, Blast blast)
     {
+      List<Point<int>> blastedTiles = new List<Point<int>>();
       Point<int> blastTile = new Point<int>(tileX, tileY);
-      for(int i=0; i<blast._blastRange.range; i++) {
+      //each blast collects the center-tile, so even with a blastRange of 0, 1 element will be collected!
+      for(int i=0; i<=blast._blastRange.range; i++) {
+        blastedTiles.add(blastTile);
         blastTile = Tile.nextTile(blastTile.x, blastTile.y, blast._direction);
-        blastedTileCollection.add(blastTile);
       }
+      blastsWithEffectedTiles[blast]=blastedTiles;
     }
     bool bombWasBlastedFrom(Direction direction)
     {
@@ -137,25 +140,28 @@ with Timed
     //add a blast for each direction the original bomb wasn't blasted from
     Direction.values().forEach(
       (Direction direction) {
-        if(!bombWasBlastedFrom(direction)) {
-          BlastRange blastRange = _level.getBlastRange(tileX, tileY, direction, explosionRadius);
-          if(blastRange.isNotEmpty) {
-            Blast blast = new Blast(blastRange, direction, _level);
-            blasts.add(blast);
-            collectBlastedTiles(blastedTiles, blast);
-          }
-        }
+        //we need zeroRange-Blast so we have blast responsible for the center explosion tile
+        BlastRange blastRange = bombWasBlastedFrom(direction) ?
+                                  new BlastRange.zeroRange() :
+                                  _level.getBlastRange(tileX, tileY, direction, explosionRadius);
+        Blast blast = new Blast(blastRange, direction, _level);
+        blasts.add(blast);
+        collectBlastedTiles(blastedTiles, blast);
       }
     );
     
-    _level.addDeadlyTiles(blastedTiles);
+    blastedTiles.forEach(
+      (Blast blast, List<Point<int>> tiles)=>_level.addDeadlyTiles(tiles, blast)
+    );
     
     startTimer(MILLIES_TO_LIVE, _fadeOut);
   }
   
   void _fadeOut()
   {
-    _level.removeDeadlyTiles(blastedTiles);
+    blastedTiles.forEach(
+      (Blast blast, List<Point<int>> tiles)=>_level.removeDeadlyTiles(tiles, blast)
+    );
     _level.remove(this);
     
     blasts.forEach(
@@ -222,7 +228,7 @@ class Blast
     if(_blastRange.hasTerminator) {
       var terminator = _blastRange.terminator;
       if(terminator is Bomb) {
-        terminator.triggeredByExplosion(this);
+        terminator.triggerByBlast(this);
       }
     }
   }
@@ -238,7 +244,10 @@ class Blast
   }
   
   void repaintOuterBlast(CanvasRenderingContext2D context2D, int unitPixelSize, int offsetX, int offsetY, double liveSpanPercentage)
-  {    
+  { 
+    //no need to paint anything if blastrange is zero
+    if(_blastRange.hasZeroRange) return;
+    
     context2D.fillStyle = Explosion.OUTER_BLAST_COLOR;
     
     int rangePixelSize = _blastRange.hasTerminator && _blastRange.terminator is Bomb ?
@@ -258,6 +267,9 @@ class Blast
   
   void repaintInnerBlast(CanvasRenderingContext2D context2D, int unitPixelSize, int offsetX, int offsetY, double liveSpanPercentage)
   {
+    //no need to paint anything if blastrange is zero
+    if(_blastRange.hasZeroRange) return;
+  
     int _evenInnerBlastDiameter(double liveSpanPercentage, int unitPixelSize) {
       //value in range [0,1] -> what is the maximum of the inner blast in relation to the outer blast
       const double MAX_DIAMETER_FACTOR = .8;
@@ -302,20 +314,24 @@ class BlastRange
   final int range;
   
   bool get hasTerminator=>terminator!=null;
-  bool get isNotEmpty=>range>0;
+  bool get hasZeroRange=>range==0;
   
   BlastRange(this.terminator, this.range);
+  
+  BlastRange.zeroRange():
+    this.terminator = null,
+    this.range = 0;
 }
 
 class Firework
 implements Repaintable
 {
   static Firework _firework = new Firework._();
-  List<Explosion> _explosions;
+  Iterable<Explosion> _explosions;
   
   Firework._();
   
-  factory Firework(List<Explosion> explosions)
+  factory Firework(Iterable<Explosion> explosions)
   {
     _firework._explosions = explosions;
     return _firework;
