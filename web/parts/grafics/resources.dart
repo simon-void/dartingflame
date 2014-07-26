@@ -120,7 +120,6 @@ class ResourceLoader
   
   void _initBombTemplate(CanvasElement canvas)
   {
-    const String outerRingColor = "#000";
     const String outerColor     = "#a00";
     
     double borderRadius = canvas.width/2;
@@ -129,7 +128,7 @@ class ResourceLoader
     double arcMiddleX = borderRadius;
     double arcMiddleY = borderRadius;
     
-    canvas.context2D..fillStyle = outerRingColor
+    canvas.context2D..fillStyle = PowerUp.OUTER_RING_COLOR
                     ..beginPath()
                     ..arc(arcMiddleX, arcMiddleY, borderRadius, 0, 6.2)
                     ..closePath()
@@ -150,21 +149,18 @@ class ResourceLoader
   }
   
   void _initBombUpgradeTemplate(CanvasElement canvas)
-  {
-    const String outerRingColor = "#000";
-    const String bombBlueColor = "#333396";
-            
+  {            
     double radius = canvas.width/2;
         
     double arcMiddleX = radius;
     double arcMiddleY = radius;
     
-    canvas.context2D..fillStyle = outerRingColor
+    canvas.context2D..fillStyle = PowerUp.OUTER_RING_COLOR
                     ..beginPath()
                     ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
                     ..closePath()
                     ..fill()
-                    ..fillStyle = bombBlueColor
+                    ..fillStyle = PowerUp.BOMB_COLOR
                     ..beginPath()
                     ..arc(arcMiddleX, arcMiddleY, radius-1, 0, 6.2)
                     ..closePath()
@@ -172,37 +168,32 @@ class ResourceLoader
   }
   
   void _initMultibombUpgradeTemplate(CanvasElement canvas)
-  {
-    const String outerRingColor = "#000";
-    const String multiBombColor = "#339633";
-            
+  {            
     double radius = canvas.width/2;
         
     double arcMiddleX = radius;
     double arcMiddleY = radius;
     
-    canvas.context2D..fillStyle = outerRingColor
+    canvas.context2D..fillStyle = PowerUp.OUTER_RING_COLOR
                     ..beginPath()
                     ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
                     ..closePath()
                     ..fill()
-                    ..fillStyle = multiBombColor
+                    ..fillStyle = PowerUp.MULTIBOMB_COLOR
                     ..beginPath()
                     ..arc(arcMiddleX, arcMiddleY, radius-1, 0, 6.2)
                     ..closePath()
                     ..fill();
-    }
+  }
   
   void _initRangeUpgradeTemplate(CanvasElement canvas)
-  {
-    const String outerRingColor = "#000";
-        
+  {        
     double radius = canvas.width/2;
     
     double arcMiddleX = radius;
     double arcMiddleY = radius;
     
-    canvas.context2D..fillStyle = outerRingColor
+    canvas.context2D..fillStyle = PowerUp.OUTER_RING_COLOR
                     ..beginPath()
                     ..arc(arcMiddleX, arcMiddleY, radius, 0, 6.2)
                     ..closePath()

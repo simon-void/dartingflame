@@ -11,6 +11,8 @@ body {
 
 h1 {
   font-size: 36px;
+  margin-top: 30px;
+  margin-bottom: 40px;
 }
 
 #appId {
@@ -40,4 +42,12 @@ h1 {
   margin-bottom: 5px;
   margin-left: 10px;
   margin-right: 10px;
+}
+
+#glossaryId {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-bottom-width: 1px;
+  border-color: #000;
 }

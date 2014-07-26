@@ -3,6 +3,9 @@ part of dartingflame;
 abstract class PowerUp
 extends RepaintableTileBasedGameObject
 {
+  static const String OUTER_RING_COLOR = "#000";
+  static const String BOMB_COLOR = "#333396";
+  static const String MULTIBOMB_COLOR = "#339633";
   final Level _level;
   
   PowerUp(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, CanvasImageSource template)
@@ -45,7 +48,7 @@ extends PowerUp
 
 class MultibombUpgrade
 extends PowerUp
-{
+{  
   MultibombUpgrade(UnitPosToPixelConverter pixelConv, Level level, int tileX, int tileY, ResourceLoader resourceLoader)
   :super(pixelConv, level, tileX, tileY, resourceLoader.multibombUpgradeTemplate);
   

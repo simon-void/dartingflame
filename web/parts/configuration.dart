@@ -37,6 +37,8 @@ class Configuration
 
 class PlayerConfiguration
 {
+  static List<String> defaultPlayerColors = ["#447", "#252"];
+  
   final String playerName;
   final String playerColor;
   final Corner startCorner;

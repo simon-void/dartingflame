@@ -2,30 +2,26 @@ part of dartingflame;
 
 class GameLoop
 {
-  final List<Controler> _controlers;
   final GameCanvas _gameCanvas;
   Level _level;
   Configuration _config;
   
   GameLoop(HtmlElement appDiv, BaseConfiguration baseConfig, ResourceLoader resourceLoader):
-    _gameCanvas = new GameCanvas(appDiv),
-    _controlers = new List<Controler>()
+    _gameCanvas = new GameCanvas(appDiv)
   {
     //guaranteing this helps in painting
     assert(baseConfig.tilePixelSize.isEven);
     
-    _level = new Level(baseConfig, this, resourceLoader);    
-    _controlers.add(new Controler.wasdSpace(window.onKeyUp, window.onKeyDown));
-    _controlers.add(new Controler.arrowsEnter(window.onKeyUp, window.onKeyDown));
-    _config = getTwoPlayerConfig();
+    _level = new Level(baseConfig, this, resourceLoader);
+    _config = _getTwoPlayerConfig();
     
     //start the game as soon as the player clicks on 'start'
     _level.initRound(_config);
     _gameCanvas.paint();
-    _gameCanvas.showMessage("let's play!", "start", startRound);
+    _gameCanvas.showMessage("let's play!", "start", _startRound);
   }
   
-  void startRound()
+  void _startRound()
   {
     _gameCanvas.animate = true;
     _level.startRound();
@@ -42,22 +38,27 @@ class GameLoop
     String roundResultMsg = winningPlayerName!=null ? "$winningPlayerName wins" : "draw"; 
     new Timer(
       new Duration(microseconds: 800),
-      ()=>_gameCanvas.showMessage(roundResultMsg, "restart", initNewRound)
+      ()=>_gameCanvas.showMessage(roundResultMsg, "restart", _initNewRound)
     );
   }
   
-  void initNewRound()
+  void _initNewRound()
   {
     _level.initRound(_config);
-    startRound();
+    _startRound();
   }
   
-  Configuration getTwoPlayerConfig()
-  {    
+  Configuration _getTwoPlayerConfig()
+  {
+    var playerColors = PlayerConfiguration.defaultPlayerColors;
+
+    var controlers = [new Controler.wasdSpace(window.onKeyUp, window.onKeyDown),
+                      new Controler.arrowsEnter(window.onKeyUp, window.onKeyDown)];
+    
     return new Configuration(
         playerConfigs:
-          [new PlayerConfiguration("player1", "#447", Corner.UPPER_LEFT,  _controlers[0]),
-           new PlayerConfiguration("player2", "#252", Corner.LOWER_RIGHT, _controlers[1])],
+          [new PlayerConfiguration("player1", playerColors[0], Corner.UPPER_LEFT,  controlers[0]),
+           new PlayerConfiguration("player2", playerColors[1], Corner.LOWER_RIGHT, controlers[1])],
         levelConfig: new LevelModConfiguration(
           numberOfBombUpgrades:      6,
           numberOfMultiBombUpgrades: 2,
