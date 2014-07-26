@@ -149,6 +149,7 @@ class Level
       tile = Tile.nextTile(tile.x, tile.y, direction);
       Bomb bomb = new Bomb(_baseConfig.pixelConv, this, tile.x, tile.y, parent, _resourceLoader);
       _model.addBomb(bomb);
+      _model.removePowerUpFromTile(tile.x, tile.y);
     }
   
     return multiBombRang;
