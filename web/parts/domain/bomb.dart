@@ -29,9 +29,12 @@ with Timed
   void _goBooom()
   {
     //boom
-    _parent.addAvailableBomb();
     _level.createExplosionAt(_tileX, _tileY, _parent.explosionRadius, _trigger);
     _level.remove(this);
+    //add the bomb back to the robot after the explosion is over
+    //(waiting time so that one can't lay a multibomb into a multibomb)
+    Duration explosionDuration = new Duration(milliseconds: Explosion.MILLIES_TO_LIVE);
+    new Timer(explosionDuration, _parent.addAvailableBomb);
   }
     
   
