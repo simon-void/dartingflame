@@ -72,7 +72,7 @@ Iterable<GlossaryItem> _getGlossary(ResourceLoader resourceLoader, int tilePixel
     new GlossaryItem(getRobotCanvas(playerColors[0]), "player1", "use wasd and space"),
     new GlossaryItem(getRobotCanvas(playerColors[1]), "player2", "use arrows and enter"),
     new GlossaryItem(paintOnCanvas(resourceLoader.rangeUpgradeTemplate), "range powerup", "the range of explosions is increased by one"),
-    new GlossaryItem(paintOnCanvas(resourceLoader.bombUpgradeTemplate), "bomb powerup", "the player is able to lay on bomb more (initially you can lay two)"),
+    new GlossaryItem(paintOnCanvas(resourceLoader.bombUpgradeTemplate), "bomb powerup", "the player is able to lay one bomb more (initially you can lay two)"),
     new GlossaryItem(paintOnCanvas(resourceLoader.multibombUpgradeTemplate), "multibomb powerup", "doubleclick lays all the players bombs in a row")
           ];
 }
