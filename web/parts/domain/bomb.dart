@@ -7,14 +7,14 @@ with Timed
   static const int MILLIES_TO_LIVE = 2000;
   static const int MILLIES_TO_LIVE_AFTER_TRIGGER = 100;
   final Level _level;
-  final Robot _parent;
+  final Robot _robot;
   final List<Blast> _trigger;
   final int _explosionRadius;
   
   Bomb(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, Robot parent, ResourceLoader resourceLoader):
     super(pixelConv, tileX, tileY, resourceLoader.bombTemplate),
     _trigger = new List<Blast>(),
-    _parent = parent,
+    _robot = parent,
     _explosionRadius = parent.explosionRadius
   {
     startTimer(MILLIES_TO_LIVE, _goBooom);
@@ -32,12 +32,8 @@ with Timed
   void _goBooom()
   {
     //boom
-    _level.createExplosionAt(_tileX, _tileY, _explosionRadius, _trigger);
+    _level.createExplosionAt(_tileX, _tileY, _explosionRadius, _trigger, _robot);
     _level.remove(this);
-    //add the bomb back to the robot after the explosion is over
-    //(waiting time so that one can't lay a multibomb into a multibomb explosion)
-    Duration explosionDuration = new Duration(milliseconds: Explosion.MILLIES_TO_LIVE);
-    new Timer(explosionDuration, _parent.addAvailableBomb);
   }
     
   
@@ -116,11 +112,12 @@ with Timed
   static const String OUTER_BLAST_COLOR = "#a00";
   static const String INNER_BLAST_COLOR = "#d3862b";
   final Level _level;
+  final Robot _robot;
   final List<Blast> blasts;
   final Map<Blast, List<Point<int>>> blastedTiles;
   double liveSpanPercentage = .0;
   
-  Explosion(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, int explosionRadius, List<Blast> trigger):
+  Explosion(UnitPosToPixelConverter pixelConv, this._level, this._robot, int tileX, int tileY, int explosionRadius, List<Blast> trigger):
     super(pixelConv, tileX, tileY),
     blasts = new List<Blast>(),
     blastedTiles = new Map<Blast, List<Point<int>>>()
@@ -175,6 +172,11 @@ with Timed
         blast.fadeOut();
       }
     );
+    
+    //add the bomb back to the robot after the explosion is over.
+    //this is done here and not in bomb.boom()
+    //so that one can't lay a new multibomb into your own multibomb explosion
+    _robot.addAvailableBomb();
   }
   
   void updateLivespanPercentage()

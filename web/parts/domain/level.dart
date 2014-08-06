@@ -102,9 +102,9 @@ class Level
     _model.addRobot(robot);
   }
   
-  Explosion createExplosionAt(int tileX, int tileY, int explosionRadius, List<Blast> trigger)
+  Explosion createExplosionAt(int tileX, int tileY, int explosionRadius, List<Blast> trigger, Robot parent)
   {
-    Explosion explosion = new Explosion(_baseConfig.pixelConv, this, tileX, tileY, explosionRadius, trigger);
+    Explosion explosion = new Explosion(_baseConfig.pixelConv, this, parent, tileX, tileY, explosionRadius, trigger);
     _model.addExplosion(explosion);
     return explosion;
   }
