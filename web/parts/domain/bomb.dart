@@ -8,11 +8,14 @@ with Timed
   static const int MILLIES_TO_LIVE_AFTER_TRIGGER = 100;
   final Level _level;
   final Robot _parent;
-  final List<Blast> _trigger; 
+  final List<Blast> _trigger;
+  final int _explosionRadius;
   
-  Bomb(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, this._parent, ResourceLoader resourceLoader):
+  Bomb(UnitPosToPixelConverter pixelConv, this._level, int tileX, int tileY, Robot parent, ResourceLoader resourceLoader):
     super(pixelConv, tileX, tileY, resourceLoader.bombTemplate),
-    _trigger = new List<Blast>()
+    _trigger = new List<Blast>(),
+    _parent = parent,
+    _explosionRadius = parent.explosionRadius
   {
     startTimer(MILLIES_TO_LIVE, _goBooom);
   }
@@ -29,10 +32,10 @@ with Timed
   void _goBooom()
   {
     //boom
-    _level.createExplosionAt(_tileX, _tileY, _parent.explosionRadius, _trigger);
+    _level.createExplosionAt(_tileX, _tileY, _explosionRadius, _trigger);
     _level.remove(this);
     //add the bomb back to the robot after the explosion is over
-    //(waiting time so that one can't lay a multibomb into a multibomb)
+    //(waiting time so that one can't lay a multibomb into a multibomb explosion)
     Duration explosionDuration = new Duration(milliseconds: Explosion.MILLIES_TO_LIVE);
     new Timer(explosionDuration, _parent.addAvailableBomb);
   }
