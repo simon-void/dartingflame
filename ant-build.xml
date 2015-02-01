@@ -1,0 +1,74 @@
+<project name="dartTasks" default="minimize" basedir=".">
+	
+        <property name="waitAtEndInSecs" value="3" />
+	<property name="dartHome" value="C:/progs/Dart" />	
+	<property name="dart2js"  location="${dartHome}/dart-sdk/bin/dart2js.bat"/>
+	
+	<property name="buildDir"  location="${basedir}/build/"/>
+	<property name="srcDir"    location="${basedir}/web/"/>
+	<property name="targetDir" location="${buildDir}/webMinimal/"/>
+	
+	<target name="assertBuildDirExists">
+		<mkdir dir="${buildDir}"/>
+	</target>
+
+	<target name="assertExternalPropertiesAreSet">
+		<condition property="mainDartFileName.provided">
+			<isset property="mainDartFileName" />
+		</condition>
+		<fail
+			message="parameter 'mainDartFileName' has to be set when invoking this build-file"
+			unless="mainDartFileName.provided" />
+
+		<available property="mainDartFile.present" file="${srcDir}/${mainDartFileName}" />
+                <fail
+			message="file ${mainDartFileName} couldn't be found. Did you provide wrong value for property 'mainDartFileName'?"
+			unless="mainDartFile.present" />
+                <echo>main dart file ${mainDartFileName} is present</echo>
+	</target>
+	
+	<target name="cleanTargetDir" depends="assertBuildDirExists">
+		<delete dir="${targetDir}" quiet="true"/>
+		<mkdir dir="${targetDir}"/>
+	</target>
+	
+	<target
+		name="minimize"
+		depends="assertExternalPropertiesAreSet, cleanTargetDir"
+		description="dart is compiled to minimal js and minimal dart">
+		
+		<echo>minimize dart</echo>
+		<exec executable="${dart2js}">
+			<arg value="--minify" />
+			<arg value="--output-type=dart" />
+			<arg value="--out=${targetDir}/${mainDartFileName}" />
+			<arg value="${srcDir}/${mainDartFileName}" />
+		</exec>
+		
+		<echo>minimize js</echo>
+		<exec executable="${dart2js}">
+			<arg value="--minify" />
+			<arg value="--out=${targetDir}/${mainDartFileName}.js" />
+			<arg value="${srcDir}/${mainDartFileName}" />
+		</exec>
+		
+		<echo>remove deps-files</echo>
+		<delete  quiet="true">
+			<fileset dir="${targetDir}" includes="*.deps" />
+		</delete>
+		
+		<echo>copy project files (not main dart file)</echo>
+		<copy todir="${targetDir}" includeEmptyDirs="false">
+			<fileset dir="${srcDir}" excludes="**/*.dart, **/packages" />
+		</copy>
+		<echo>minimization done</echo>
+
+		<!--wait for a few seconds until shell disappears--> 
+		<waitfor maxwait="${waitAtEndInSecs}" maxwaitunit="second">
+			<istrue value="false"/>
+		</waitfor>
+
+	</target>
+	
+
+</project>
