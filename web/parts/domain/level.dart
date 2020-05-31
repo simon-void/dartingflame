@@ -98,7 +98,7 @@ class Level
   void createRobotAt(PlayerConfiguration config)
   {
     Point<int> tile = config.startCorner.getTile(_baseConfig.widthTiles, _baseConfig.heightTiles);
-    Robot robot = new Robot(_baseConfig.pixelConv, config, this, tile.x, tile.y, _resourceLoader);
+    Robot robot = new Robot(_baseConfig.pixelConv, config, this, tile.x, tile.y, _resourceLoader, nowInMillies);
     _model.addRobot(robot);
   }
   
@@ -200,10 +200,7 @@ class Level
     if(survivor!=null) {
       nameOfSurvivingPlayer = survivor._config.playerName;
       //decomision the last Robot so that it removes itself from the controler
-      //turns out we have to wait a little bit so that the survivor doesn't disappear
-      //from the canvas (although that one is told to stop repainint immediatly)
-      Duration timeTillSurvivorDisconnect = new Duration(milliseconds: 50);
-      new Timer(timeTillSurvivorDisconnect, survivor.explode);
+      survivor.disconnect();
     }
     
     _gameLoop.endRound(nameOfSurvivingPlayer);

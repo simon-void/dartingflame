@@ -35,11 +35,8 @@ class GameLoop
     _gameCanvas.animate = false;
     
     //start a new round after a short while
-    String roundResultMsg = winningPlayerName!=null ? "$winningPlayerName wins" : "draw"; 
-    new Timer(
-      new Duration(microseconds: 800),
-      ()=>_gameCanvas.showMessage(roundResultMsg, "restart", _initNewRound)
-    );
+    String roundResultMsg = winningPlayerName!=null ? "$winningPlayerName wins" : "draw";
+    _gameCanvas.showMessage(roundResultMsg, "restart", _initNewRound);
   }
   
   void _initNewRound()

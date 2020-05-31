@@ -1,0 +1,64 @@
+html, body {
+    height: 100%;
+}
+
+html {
+    display: table;
+    margin: auto;
+}
+
+body {
+  display: table-cell;
+  vertical-align: middle;
+
+  background-color: #F8F8F8;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.2em;
+  margin: 15px;
+  color: #333;
+}
+
+h1 {
+  font-size: 36px;
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+#appId {
+  position: relative;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-bottom-width: 1px;
+  border-color: #000;
+}
+
+#startPopup {
+  position: absolute;
+  text-align: center;
+  background: #fff;
+  border: 1px solid black;
+}
+
+#popupText {
+  font-size: 22px;
+  padding: 10px;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+#popupButton {  
+  font-size: 20px;
+  margin-bottom: 5px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+#glossaryId {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-bottom-width: 1px;
+  border-color: #000;
+}

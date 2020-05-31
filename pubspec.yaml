@@ -2,3 +2,10 @@ name: dartingflame
 description: A sample web application
 dependencies:
   browser: any
+dev_dependencies:
+  unittest: '>=0.11.0'
+  mockito: '>=0.8.0'
+transformers:
+- $dart2js:
+    checked: false
+    minify: true

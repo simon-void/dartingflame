@@ -30,6 +30,9 @@ class AnimationTimer
   }
 }
 
+///returns the time in millies
+typedef double Clock();
+
 double nowInMillies() => window.performance.now();
 
 /**

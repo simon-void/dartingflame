@@ -1,5 +1,16 @@
+html, body {
+    height: 100%;
+}
+
+html {
+    display: table;
+    margin: auto;
+}
 
 body {
+  display: table-cell;
+  vertical-align: middle;
+
   background-color: #F8F8F8;
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
